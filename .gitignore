@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.astro/
+.wrangler/
+.dev.vars
+.env
+*.log
+.DS_Store
+
+# local logs / data dumps
+worker/*.log
+web/*.log
+worker/snap.json
+worker/aa_real.json

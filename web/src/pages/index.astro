@@ -1,0 +1,278 @@
+---
+import Dashboard from "../components/Dashboard.tsx";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>better-aa · intelligence, speed & price for LLMs</title>
+    <meta
+      name="description"
+      content="A focused view of LLM intelligence, speed, price and latency across leading model creators. Data from Artificial Analysis."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-head">
+      <div class="wrap">
+        <div class="topline">
+          <div class="brand">
+            <span class="logo"><span class="logo-dot"></span></span>
+            <span class="brand-name">better<span class="accent">aa</span></span>
+          </div>
+          <a class="attrib" href="https://artificialanalysis.ai" rel="noreferrer">
+            <span class="muted">data ·</span> Artificial&nbsp;Analysis
+          </a>
+        </div>
+        <div class="hero-copy">
+          <h1>The model leaderboard, stripped to what decides a choice.</h1>
+          <p>
+            Intelligence, speed, price and latency for models from OpenAI, Google,
+            Anthropic, Kimi, Z&nbsp;AI, MiniMax and Xiaomi — one snapshot, refreshed daily.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <Dashboard client:load />
+    </main>
+
+    <footer class="wrap">
+      <p>
+        Powered by the <a href="https://artificialanalysis.ai" rel="noreferrer"
+          >Artificial Analysis</a
+        > API · data refreshed daily. Independent project, not affiliated with Artificial
+        Analysis.
+      </p>
+    </footer>
+
+    <style is:global>
+      :root {
+        --bg: #0a0a0c;
+        --surface: #141417;
+        --surface-2: #0f0f12;
+        --border: rgba(255, 255, 255, 0.08);
+        --border-strong: rgba(255, 255, 255, 0.14);
+        --text: #ededf0;
+        --muted: #8a8a93;
+        --faint: #5c5c64;
+        --accent: #2dd4bf;
+        --radius: 18px;
+        --ease: cubic-bezier(0.16, 1, 0.3, 1);
+        --mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
+      }
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--text);
+        font-family: "Geist", system-ui, -apple-system, sans-serif;
+        -webkit-font-smoothing: antialiased;
+        line-height: 1.55;
+        letter-spacing: -0.01em;
+      }
+      a { color: inherit; }
+
+      /* Fixed film-grain overlay (perf-safe: pointer-events none, no repaint on scroll). */
+      .grain {
+        position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: 0.035;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      }
+
+      .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+      @media (max-width: 640px) { .wrap { padding: 0 18px; } }
+
+      /* ---------- Header ---------- */
+      .site-head {
+        padding: 26px 0 30px;
+        background:
+          radial-gradient(900px 380px at 78% -40%, rgba(45, 212, 191, 0.08), transparent 60%),
+          linear-gradient(180deg, #0d0e11 0%, var(--bg) 100%);
+        border-bottom: 1px solid var(--border);
+      }
+      .topline { display: flex; align-items: center; justify-content: space-between; }
+      .brand { display: flex; align-items: center; gap: 10px; }
+      .logo {
+        width: 26px; height: 26px; border-radius: 8px;
+        display: grid; place-items: center;
+        background: linear-gradient(160deg, #1b1c20, #0e0f12);
+        border: 1px solid var(--border-strong);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      }
+      .logo-dot {
+        width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
+        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.16);
+      }
+      .brand-name { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+      .brand-name .accent { color: var(--accent); }
+      .attrib {
+        font-size: 12.5px; text-decoration: none; color: var(--text);
+        padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border);
+        background: var(--surface-2); transition: border-color 0.2s var(--ease);
+      }
+      .attrib:hover { border-color: var(--border-strong); }
+      .attrib .muted { color: var(--faint); }
+
+      .hero-copy { margin-top: 40px; max-width: 720px; }
+      h1 {
+        font-size: clamp(26px, 4vw, 40px); font-weight: 600; margin: 0;
+        line-height: 1.08; letter-spacing: -0.03em;
+        background: linear-gradient(180deg, #fff 30%, #b9b9c0);
+        -webkit-background-clip: text; background-clip: text; color: transparent;
+      }
+      .hero-copy p { color: var(--muted); margin: 16px 0 0; font-size: 15.5px; max-width: 62ch; }
+
+      main { padding: 30px 0 40px; }
+
+      /* ---------- KPI strip ---------- */
+      .kpi-strip {
+        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px;
+      }
+      .kpi {
+        position: relative; padding: 18px 18px 16px; border-radius: var(--radius);
+        background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+        border: 1px solid var(--border);
+        display: flex; flex-direction: column; gap: 7px;
+        animation: rise 0.6s var(--ease) both; animation-delay: calc(var(--i) * 70ms);
+      }
+      .kpi::before {
+        content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 1px;
+        background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+      }
+      .kpi-label { font-size: 11.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; }
+      .kpi-value { font-family: var(--mono); font-size: 27px; font-weight: 600; letter-spacing: -0.02em; }
+      .kpi-model { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+      .ledot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, #8a8a93); flex: none; }
+
+      /* ---------- Toolbar / legend ---------- */
+      .toolbar {
+        display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
+        justify-content: space-between; margin: 4px 0 18px;
+      }
+      .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+      .updated { color: var(--faint); font-size: 12.5px; font-family: var(--mono); }
+
+      .chip {
+        display: inline-flex; align-items: center; gap: 7px;
+        font-size: 12.5px; font-weight: 500; padding: 6px 12px; border-radius: 999px;
+        border: 1px solid var(--border); color: var(--text);
+        background: var(--surface-2); font-family: inherit;
+      }
+      .chip.toggle { cursor: pointer; transition: transform 0.18s var(--ease), border-color 0.18s var(--ease), opacity 0.18s var(--ease); }
+      .chip.toggle.off { opacity: 0.4; }
+      .chip.toggle.off .ledot { filter: grayscale(1); }
+      .chip.toggle:hover { border-color: var(--border-strong); transform: translateY(-1px); }
+      .chip.toggle:active { transform: scale(0.96); }
+
+      /* ---------- Cards ---------- */
+      .card {
+        background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 20px 20px 12px;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 50px -32px rgba(0, 0, 0, 0.8);
+        height: 100%;
+      }
+      .card h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
+      .card .sub { margin: 5px 0 16px; color: var(--muted); font-size: 12.5px; }
+
+      .hero-chart, .full { animation: rise 0.6s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
+      .hero-chart { margin-bottom: 16px; }
+      .hero-chart .card { padding-bottom: 20px; }
+
+      .bento {
+        display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;
+      }
+      .bento > div { animation: rise 0.6s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
+      @media (max-width: 860px) {
+        .bento, .kpi-strip { grid-template-columns: 1fr 1fr; }
+      }
+      @media (max-width: 560px) {
+        .bento, .kpi-strip { grid-template-columns: 1fr; }
+      }
+
+      /* ---------- Table ---------- */
+      .table-wrap { overflow-x: auto; margin: 0 -8px; }
+      table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      thead th {
+        position: sticky; top: 0; z-index: 1;
+        text-align: left; padding: 11px 12px; color: var(--muted);
+        font-weight: 500; cursor: pointer; user-select: none;
+        border-bottom: 1px solid var(--border); white-space: nowrap;
+        background: var(--surface); transition: color 0.15s var(--ease);
+      }
+      thead th:hover { color: var(--text); }
+      tbody td {
+        padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+        font-variant-numeric: tabular-nums; white-space: nowrap;
+      }
+      tbody tr { transition: background 0.12s var(--ease); }
+      tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
+      .num { text-align: right; font-family: var(--mono); }
+      thead th.num { text-align: right; }
+      .chip:not(.toggle) { padding: 3px 9px; font-size: 12px; }
+
+      /* ---------- Tooltip / states ---------- */
+      .tooltip {
+        background: #0c0c0f; border: 1px solid var(--border-strong); border-radius: 12px;
+        padding: 11px 13px; font-size: 12px; color: var(--text);
+        box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.9);
+      }
+      .tooltip strong { display: block; margin-bottom: 3px; font-weight: 600; }
+      .tooltip div { color: var(--muted); }
+
+      .empty {
+        color: var(--faint); font-size: 12.5px; padding: 46px 0; text-align: center;
+        border: 1px dashed var(--border); border-radius: 12px; margin-bottom: 12px;
+      }
+      .status {
+        display: flex; flex-direction: column; gap: 6px; align-items: center;
+        padding: 80px 0; text-align: center; color: var(--muted);
+      }
+      .status strong { color: var(--text); font-size: 15px; }
+      .status.error strong { color: #f0908f; }
+      .status .sub { color: var(--faint); font-size: 13px; }
+
+      /* ---------- Skeleton ---------- */
+      .sk-card, .kpi.sk, .sk-line {
+        position: relative; overflow: hidden;
+        background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
+      }
+      .sk-card { height: 280px; }
+      .sk-card.hero { height: 360px; margin-bottom: 16px; }
+      .kpi.sk { height: 104px; }
+      .sk-line { border: none; border-radius: 6px; height: 11px; display: block; }
+      .sk-line.tall { height: 24px; }
+      .w40 { width: 40%; } .w50 { width: 50%; } .w60 { width: 62%; }
+      .kpi.sk { display: flex; flex-direction: column; gap: 10px; padding: 18px; justify-content: center; }
+      .sk-card::after, .kpi.sk::after, .sk-line::after {
+        content: ""; position: absolute; inset: 0;
+        transform: translateX(-100%);
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+        animation: shimmer 1.5s infinite;
+      }
+      @keyframes shimmer { 100% { transform: translateX(100%); } }
+      @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+      @media (prefers-reduced-motion: reduce) {
+        .kpi, .bento > div, .hero-chart, .full { animation: none; }
+        .sk-card::after, .kpi.sk::after, .sk-line::after { animation: none; }
+      }
+
+      /* ---------- Footer ---------- */
+      footer { padding: 34px 0 70px; color: var(--faint); font-size: 12.5px; border-top: 1px solid var(--border); margin-top: 30px; }
+      footer a { color: var(--accent); text-decoration: none; }
+      footer a:hover { text-decoration: underline; }
+    </style>
+  </body>
+</html>
