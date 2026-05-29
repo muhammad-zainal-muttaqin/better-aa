@@ -13,41 +13,52 @@ export default function Dashboard() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [stale, setStale] = useState(false);
   const [active, setActive] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     let cancelled = false;
-    const ctrl = new AbortController();
-    // Never hang on the skeleton: surface a timeout as an error after 15s.
-    const timer = setTimeout(() => ctrl.abort(), 15000);
 
-    fetch(`${API_BASE}/api/models`, { signal: ctrl.signal })
-      .then(async (r) => {
+    // Try the live Worker (5s cap); if it's unreachable — common with browser
+    // localhost cross-port blocking, or before deploy — fall back to the
+    // same-origin bundled snapshot so the page always renders.
+    async function fetchWithTimeout(url: string, ms: number): Promise<Snapshot> {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), ms);
+      try {
+        const r = await fetch(url, { signal: ctrl.signal });
         if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error ?? `HTTP ${r.status}`);
-        return r.json() as Promise<Snapshot>;
-      })
-      .then((s) => {
-        if (cancelled) return;
-        setSnapshot(s);
-        setActive(new Set(s.models.map((m) => m.creator)));
-      })
-      .catch((e) => {
-        if (cancelled) return;
-        setError(
-          e?.name === "AbortError"
-            ? `Request to ${API_BASE} timed out — is the Worker running and seeded?`
-            : String(e?.message ?? e),
-        );
-      })
-      .finally(() => {
+        return (await r.json()) as Snapshot;
+      } finally {
         clearTimeout(timer);
+      }
+    }
+
+    (async () => {
+      let data: Snapshot | null = null;
+      let usedFallback = false;
+      try {
+        data = await fetchWithTimeout(`${API_BASE}/api/models`, 5000);
+      } catch {
+        try {
+          data = await fetchWithTimeout("/snapshot.json", 5000);
+          usedFallback = true;
+        } catch (e2: any) {
+          if (!cancelled) setError(String(e2?.message ?? e2));
+        }
+      }
+      if (cancelled || !data) {
         if (!cancelled) setLoading(false);
-      });
+        return;
+      }
+      setSnapshot(data);
+      setStale(usedFallback);
+      setActive(new Set(data.models.map((m) => m.creator)));
+      setLoading(false);
+    })();
 
     return () => {
       cancelled = true;
-      clearTimeout(timer);
-      ctrl.abort();
     };
   }, []);
 
@@ -100,6 +111,7 @@ export default function Dashboard() {
           ))}
         </div>
         <div className="updated">
+          {stale && <span className="cached-badge">bundled snapshot</span>}
           {filtered.length} models · updated{" "}
           {new Date(snapshot.generatedAt).toLocaleDateString(undefined, {
             year: "numeric",
