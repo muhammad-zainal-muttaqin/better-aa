@@ -13,8 +13,6 @@ crons = ["0 6 * * *"]
 binding = "SNAPSHOT_KV"
 id = "02a9392af126409d93433284d1313463"
 
-[vars]
-# Public, non-secret config. The AA key is a secret (see README):
-#   wrangler secret put AA_API_KEY
-# Optional shared secret to guard the manual /seed route in production.
-SEED_TOKEN = ""
+# Secrets (set via `wrangler secret put`, never committed):
+#   AA_API_KEY  — Artificial Analysis API key
+#   SEED_TOKEN  — guards the manual /seed route; call /seed?token=<SEED_TOKEN>
