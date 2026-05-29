@@ -1,15 +1,18 @@
 ---
-import snapshot from "../../public/snapshot.json";
 import StatStrip from "../components/StatStrip.tsx";
 import ModelTable from "../components/ModelTable.tsx";
 import App from "../components/App.tsx";
 import { CREATOR_COLORS } from "../lib/theme";
+import { loadSiteData } from "../lib/data";
 
-// HTML-first: the data (StatStrip + ModelTable) is rendered to static HTML at
-// build time, so it's always visible regardless of JS, extensions, or browser
-// translate. Charts are the only hydrated island (a non-critical enhancement).
-const models = snapshot.models;
-const updated = new Date(snapshot.generatedAt).toLocaleDateString("en-US", {
+// SSR per request: pull the freshest catalog from the bound KV namespace (daily
+// cron keeps it current), falling back to the baked snapshot when KV is absent.
+// HTML-first is preserved — StatStrip + ModelTable still render to static HTML
+// here, so the data shows with JS disabled / extensions / translate.
+export const prerender = false;
+const kv = (Astro.locals as any)?.runtime?.env?.SNAPSHOT_KV;
+const { models, generatedAt, origin } = await loadSiteData(kv);
+const updated = new Date(generatedAt).toLocaleDateString("en-US", {
   year: "numeric",
   month: "short",
   day: "numeric",

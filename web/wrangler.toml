@@ -1,0 +1,11 @@
+# Cloudflare Pages config for the SSR site. `pages_build_output_dir` makes this
+# a Pages project; the KV binding lets the server-rendered page read the daily
+# catalog straight from KV (same namespace the worker cron writes to).
+name = "better-aa"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "dist"
+
+[[kv_namespaces]]
+binding = "SNAPSHOT_KV"
+id = "02a9392af126409d93433284d1313463"
