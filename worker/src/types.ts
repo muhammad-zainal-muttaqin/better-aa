@@ -24,8 +24,12 @@ export interface Model {
   priceBlended: number | null;
 
   // Tokens consumed running the Intelligence Index evaluation.
-  // Resolved from the live API on first run (see aa.ts).
+  // Scraped from the models page (not in the API) — see scrape.ts.
   tokensUsed: number | null;
+
+  // USD cost to run the Artificial Analysis Intelligence Index for this model.
+  // Scraped from the models page (intelligence_index_cost.total_cost).
+  costToRun: number | null;
 }
 
 export interface Snapshot {

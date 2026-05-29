@@ -8,7 +8,7 @@
 // 1000 req/day rate limit is never a concern.
 
 import { fetchModels } from "./aa";
-import { fetchTokenCounts } from "./scrape";
+import { fetchModelExtras } from "./scrape";
 import type { Snapshot } from "./types";
 
 export interface Env {
@@ -38,21 +38,34 @@ async function ingest(env: Env): Promise<Snapshot> {
   }
   const models = await fetchModels(env.AA_API_KEY);
 
-  // Enrich with tokens-used scraped from the models page (not in the API).
-  // Best-effort: a scrape failure must not break the daily ingest.
+  // Enrich with tokens-used + cost-to-run scraped from the models page (neither
+  // is in the API). Best-effort: a scrape failure must not break the ingest.
   try {
-    const tokenMap = await fetchTokenCounts();
-    let hits = 0;
+    const extras = await fetchModelExtras();
+    let tok = 0;
+    let cost = 0;
     for (const m of models) {
-      const t = tokenMap[m.id];
-      if (typeof t === "number") {
-        m.tokensUsed = t;
-        hits++;
+      const e = extras[m.id];
+      if (!e) continue;
+      if (typeof e.outputTokens === "number") {
+        m.tokensUsed = e.outputTokens;
+        tok++;
+      }
+      // cost = input·priceInput + output·priceOutput, per 1M tokens.
+      if (
+        typeof e.inputTokens === "number" &&
+        typeof e.outputTokens === "number" &&
+        typeof m.priceInput === "number" &&
+        typeof m.priceOutput === "number"
+      ) {
+        m.costToRun =
+          (e.inputTokens * m.priceInput + e.outputTokens * m.priceOutput) / 1_000_000;
+        cost++;
       }
     }
-    console.log(`Token counts merged: ${hits}/${models.length} models`);
+    console.log(`Scrape merged: tokens ${tok}/${models.length}, cost ${cost}/${models.length}`);
   } catch (err) {
-    console.warn("Token-count scrape failed (continuing without):", err);
+    console.warn("Page scrape failed (continuing without):", err);
   }
 
   const snapshot: Snapshot = {

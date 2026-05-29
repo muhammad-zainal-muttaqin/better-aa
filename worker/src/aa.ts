@@ -89,6 +89,7 @@ export function normalize(raw: RawModel): Model {
 
     // Not in the API — enriched later from the scraped models page (see scrape.ts).
     tokensUsed: null,
+    costToRun: null,
   };
 }
 

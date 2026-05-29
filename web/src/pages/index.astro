@@ -10,7 +10,7 @@ import Dashboard from "../components/Dashboard.tsx";
     <title>better-aa · intelligence, speed & price for LLMs</title>
     <meta
       name="description"
-      content="A focused view of LLM intelligence, speed, price and latency across leading model creators. Data from Artificial Analysis."
+      content="A focused view of LLM intelligence, speed, price, latency and cost-to-run across leading model creators. Data from Artificial Analysis."
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -21,6 +21,7 @@ import Dashboard from "../components/Dashboard.tsx";
   </head>
   <body>
     <div class="grain" aria-hidden="true"></div>
+    <div class="glow" aria-hidden="true"></div>
 
     <header class="site-head">
       <div class="wrap">
@@ -30,14 +31,15 @@ import Dashboard from "../components/Dashboard.tsx";
             <span class="brand-name">better<span class="accent">aa</span></span>
           </div>
           <a class="attrib" href="https://artificialanalysis.ai" rel="noreferrer">
-            <span class="muted">data ·</span> Artificial&nbsp;Analysis
+            <span class="muted">data</span> Artificial&nbsp;Analysis
           </a>
         </div>
         <div class="hero-copy">
-          <h1>The model leaderboard, stripped to what decides a choice.</h1>
+          <span class="eyebrow">LLM leaderboard</span>
+          <h1>Only the four numbers that decide a model.</h1>
           <p>
-            Intelligence, speed, price and latency for models from OpenAI, Google,
-            Anthropic, Kimi, Z&nbsp;AI, MiniMax and Xiaomi — one snapshot, refreshed daily.
+            Intelligence, speed, price and cost-to-run for OpenAI, Google, Anthropic,
+            Kimi, Z&nbsp;AI, MiniMax and Xiaomi — one snapshot, refreshed daily. No noise.
           </p>
         </div>
       </div>
@@ -51,23 +53,24 @@ import Dashboard from "../components/Dashboard.tsx";
       <p>
         Powered by the <a href="https://artificialanalysis.ai" rel="noreferrer"
           >Artificial Analysis</a
-        > API · data refreshed daily. Independent project, not affiliated with Artificial
-        Analysis.
+        > API · refreshed daily. Cost-to-run derived from the published per-model token
+        counts. Independent project, not affiliated with Artificial Analysis.
       </p>
     </footer>
 
     <style is:global>
       :root {
-        --bg: #0a0a0c;
-        --surface: #141417;
-        --surface-2: #0f0f12;
-        --border: rgba(255, 255, 255, 0.08);
-        --border-strong: rgba(255, 255, 255, 0.14);
-        --text: #ededf0;
-        --muted: #8a8a93;
-        --faint: #5c5c64;
+        --bg: #08080a;
+        --surface: #131316;
+        --surface-2: #0e0e11;
+        --border: rgba(255, 255, 255, 0.07);
+        --border-strong: rgba(255, 255, 255, 0.13);
+        --text: #f1f1f3;
+        --muted: #8c8c95;
+        --faint: #5a5a62;
         --accent: #2dd4bf;
-        --radius: 18px;
+        --accent-dim: rgba(45, 212, 191, 0.14);
+        --radius: 16px;
         --ease: cubic-bezier(0.16, 1, 0.3, 1);
         --mono: "Geist Mono", ui-monospace, SFMono-Regular, monospace;
       }
@@ -80,88 +83,89 @@ import Dashboard from "../components/Dashboard.tsx";
         font-family: "Geist", system-ui, -apple-system, sans-serif;
         -webkit-font-smoothing: antialiased;
         line-height: 1.55;
-        letter-spacing: -0.01em;
+        letter-spacing: -0.011em;
       }
       a { color: inherit; }
 
-      /* Fixed film-grain overlay (perf-safe: pointer-events none, no repaint on scroll). */
+      /* Fixed film-grain overlay (perf-safe: pointer-events none, no scroll repaint). */
       .grain {
-        position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: 0.035;
+        position: fixed; inset: 0; z-index: 100; pointer-events: none; opacity: 0.03;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       }
+      .glow {
+        position: fixed; top: -340px; right: -200px; width: 760px; height: 680px;
+        z-index: 0; pointer-events: none;
+        background: radial-gradient(circle at center, rgba(45, 212, 191, 0.08), transparent 62%);
+        filter: blur(20px);
+      }
 
-      .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+      .wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; position: relative; z-index: 1; }
       @media (max-width: 640px) { .wrap { padding: 0 18px; } }
 
       /* ---------- Header ---------- */
-      .site-head {
-        padding: 26px 0 30px;
-        background:
-          radial-gradient(900px 380px at 78% -40%, rgba(45, 212, 191, 0.08), transparent 60%),
-          linear-gradient(180deg, #0d0e11 0%, var(--bg) 100%);
-        border-bottom: 1px solid var(--border);
-      }
+      .site-head { padding: 28px 0 34px; border-bottom: 1px solid var(--border); }
       .topline { display: flex; align-items: center; justify-content: space-between; }
       .brand { display: flex; align-items: center; gap: 10px; }
       .logo {
-        width: 26px; height: 26px; border-radius: 8px;
-        display: grid; place-items: center;
-        background: linear-gradient(160deg, #1b1c20, #0e0f12);
+        width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center;
+        background: linear-gradient(160deg, #1c1d21, #0e0f12);
         border: 1px solid var(--border-strong);
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
       }
       .logo-dot {
         width: 8px; height: 8px; border-radius: 50%; background: var(--accent);
-        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.16);
+        box-shadow: 0 0 0 3px var(--accent-dim);
       }
       .brand-name { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
       .brand-name .accent { color: var(--accent); }
       .attrib {
-        font-size: 12.5px; text-decoration: none; color: var(--text);
-        padding: 6px 11px; border-radius: 999px; border: 1px solid var(--border);
+        display: inline-flex; gap: 6px; align-items: center;
+        font-size: 12px; text-decoration: none; color: var(--text);
+        padding: 6px 12px; border-radius: 999px; border: 1px solid var(--border);
         background: var(--surface-2); transition: border-color 0.2s var(--ease);
       }
       .attrib:hover { border-color: var(--border-strong); }
       .attrib .muted { color: var(--faint); }
 
-      .hero-copy { margin-top: 40px; max-width: 720px; }
-      h1 {
-        font-size: clamp(26px, 4vw, 40px); font-weight: 600; margin: 0;
-        line-height: 1.08; letter-spacing: -0.03em;
-        background: linear-gradient(180deg, #fff 30%, #b9b9c0);
-        -webkit-background-clip: text; background-clip: text; color: transparent;
+      .hero-copy { margin-top: 44px; max-width: 760px; }
+      .eyebrow {
+        display: inline-block; font-family: var(--mono); font-size: 11px;
+        text-transform: uppercase; letter-spacing: 0.18em; color: var(--accent);
+        margin-bottom: 16px;
       }
-      .hero-copy p { color: var(--muted); margin: 16px 0 0; font-size: 15.5px; max-width: 62ch; }
+      h1 {
+        font-size: clamp(28px, 4.4vw, 46px); font-weight: 600; margin: 0;
+        line-height: 1.04; letter-spacing: -0.035em; color: var(--text);
+      }
+      .hero-copy p { color: var(--muted); margin: 17px 0 0; font-size: 15.5px; max-width: 60ch; }
 
       main { padding: 30px 0 40px; }
 
       /* ---------- KPI strip ---------- */
-      .kpi-strip {
-        display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px;
-      }
+      .kpi-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 13px; margin-bottom: 26px; }
       .kpi {
-        position: relative; padding: 18px 18px 16px; border-radius: var(--radius);
+        position: relative; padding: 17px 18px 16px 20px; border-radius: var(--radius);
         background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
-        border: 1px solid var(--border);
-        display: flex; flex-direction: column; gap: 7px;
+        border: 1px solid var(--border); overflow: hidden;
+        display: flex; flex-direction: column; gap: 8px;
         animation: rise 0.6s var(--ease) both; animation-delay: calc(var(--i) * 70ms);
       }
       .kpi::before {
-        content: ""; position: absolute; left: 18px; right: 18px; top: 0; height: 1px;
-        background: linear-gradient(90deg, transparent, var(--border-strong), transparent);
+        content: ""; position: absolute; left: 0; top: 14px; bottom: 14px; width: 3px;
+        border-radius: 0 3px 3px 0; background: var(--c, var(--accent));
       }
-      .kpi-label { font-size: 11.5px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.08em; }
-      .kpi-value { font-family: var(--mono); font-size: 27px; font-weight: 600; letter-spacing: -0.02em; }
+      .kpi-label { font-size: 11px; color: var(--faint); text-transform: uppercase; letter-spacing: 0.09em; }
+      .kpi-value { font-family: var(--mono); font-size: 28px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; }
       .kpi-model { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
       .ledot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, #8a8a93); flex: none; }
 
       /* ---------- Toolbar / legend ---------- */
       .toolbar {
         display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
-        justify-content: space-between; margin: 4px 0 18px;
+        justify-content: space-between; margin: 4px 0 16px;
       }
       .legend { display: flex; flex-wrap: wrap; gap: 8px; }
-      .updated { color: var(--faint); font-size: 12.5px; font-family: var(--mono); display: flex; align-items: center; gap: 10px; }
+      .updated { color: var(--faint); font-size: 12px; font-family: var(--mono); display: flex; align-items: center; gap: 10px; }
       .cached-badge {
         color: #e0b84a; border: 1px solid rgba(224, 184, 74, 0.3);
         background: rgba(224, 184, 74, 0.08); padding: 2px 8px; border-radius: 999px;
@@ -175,7 +179,7 @@ import Dashboard from "../components/Dashboard.tsx";
         background: var(--surface-2); font-family: inherit;
       }
       .chip.toggle { cursor: pointer; transition: transform 0.18s var(--ease), border-color 0.18s var(--ease), opacity 0.18s var(--ease); }
-      .chip.toggle.off { opacity: 0.4; }
+      .chip.toggle.off { opacity: 0.38; }
       .chip.toggle.off .ledot { filter: grayscale(1); }
       .chip.toggle:hover { border-color: var(--border-strong); transform: translateY(-1px); }
       .chip.toggle:active { transform: scale(0.96); }
@@ -183,63 +187,78 @@ import Dashboard from "../components/Dashboard.tsx";
       /* ---------- Cards ---------- */
       .card {
         background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 20px 20px 12px;
-        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 24px 50px -32px rgba(0, 0, 0, 0.8);
+        border: 1px solid var(--border); border-radius: var(--radius);
+        padding: 20px 20px 14px;
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.035) inset, 0 26px 50px -34px rgba(0, 0, 0, 0.85);
         height: 100%;
       }
-      .card h2 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.015em; }
-      .card .sub { margin: 5px 0 16px; color: var(--muted); font-size: 12.5px; }
+      .card-head { margin-bottom: 14px; }
+      .card h2 { margin: 0; font-size: 14.5px; font-weight: 600; letter-spacing: -0.015em; }
+      .card .sub { margin: 5px 0 0; color: var(--muted); font-size: 12.5px; max-width: 62ch; }
 
       .hero-chart, .full { animation: rise 0.6s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
-      .hero-chart { margin-bottom: 16px; }
-      .hero-chart .card { padding-bottom: 20px; }
+      .hero-chart { margin-bottom: 14px; }
 
-      .bento {
-        display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;
-      }
+      .bento { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
       .bento > div { animation: rise 0.6s var(--ease) both; animation-delay: calc(var(--i) * 70ms); }
-      @media (max-width: 860px) {
-        .bento, .kpi-strip { grid-template-columns: 1fr 1fr; }
-      }
-      @media (max-width: 560px) {
-        .bento, .kpi-strip { grid-template-columns: 1fr; }
-      }
+      @media (max-width: 860px) { .bento, .kpi-strip { grid-template-columns: 1fr 1fr; } }
+      @media (max-width: 560px) { .bento, .kpi-strip { grid-template-columns: 1fr; } }
 
       /* ---------- Table ---------- */
-      .table-wrap { overflow-x: auto; margin: 0 -8px; }
+      .table-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 14px; }
+      .search {
+        background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+        border-radius: 10px; padding: 8px 13px; font-size: 13px; font-family: inherit;
+        width: 220px; max-width: 48vw; transition: border-color 0.18s var(--ease);
+      }
+      .search:focus { outline: none; border-color: var(--accent); }
+      .search::placeholder { color: var(--faint); }
+
+      .table-wrap { overflow-x: auto; margin: 6px -8px 0; }
       table { width: 100%; border-collapse: collapse; font-size: 13px; }
       thead th {
-        position: sticky; top: 0; z-index: 1;
-        text-align: left; padding: 11px 12px; color: var(--muted);
-        font-weight: 500; cursor: pointer; user-select: none;
+        position: sticky; top: 0; z-index: 1; text-align: left; padding: 10px 12px;
+        color: var(--muted); font-weight: 500; cursor: pointer; user-select: none;
         border-bottom: 1px solid var(--border); white-space: nowrap;
         background: var(--surface); transition: color 0.15s var(--ease);
       }
       thead th:hover { color: var(--text); }
+      .sortcaret { color: var(--accent); font-size: 11px; }
       tbody td {
-        padding: 10px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.045);
+        padding: 9px 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.04);
         font-variant-numeric: tabular-nums; white-space: nowrap;
       }
       tbody tr { transition: background 0.12s var(--ease); }
-      tbody tr:hover { background: rgba(255, 255, 255, 0.025); }
+      tbody tr:hover { background: rgba(255, 255, 255, 0.022); }
       .num { text-align: right; font-family: var(--mono); }
       thead th.num { text-align: right; }
-      .chip:not(.toggle) { padding: 3px 9px; font-size: 12px; }
+      .rankcol { width: 34px; color: var(--faint); font-family: var(--mono); font-size: 12px; text-align: right; }
+      .model-cell { font-weight: 500; max-width: 280px; overflow: hidden; text-overflow: ellipsis; }
+      .chip:not(.toggle) { padding: 3px 9px 3px 8px; font-size: 12px; }
+
+      .intel-cell { display: inline-flex; align-items: center; gap: 9px; justify-content: flex-end; }
+      .intel-bar { width: 54px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
+      .intel-fill { display: block; height: 100%; border-radius: 3px; }
+      .intel-num { min-width: 30px; text-align: right; }
 
       /* ---------- Tooltip / states ---------- */
       .tooltip {
         background: #0c0c0f; border: 1px solid var(--border-strong); border-radius: 12px;
-        padding: 11px 13px; font-size: 12px; color: var(--text);
-        box-shadow: 0 16px 40px -12px rgba(0, 0, 0, 0.9);
+        padding: 11px 13px; font-size: 12px; color: var(--text); min-width: 150px;
+        box-shadow: 0 18px 44px -14px rgba(0, 0, 0, 0.92);
       }
-      .tooltip strong { display: block; margin-bottom: 3px; font-weight: 600; }
-      .tooltip div { color: var(--muted); }
+      .tooltip strong { display: block; margin-bottom: 6px; font-weight: 600; font-size: 12.5px; }
+      .tt-creator { display: flex; align-items: center; gap: 7px; color: var(--muted); margin-bottom: 7px; }
+      .tt-tag {
+        margin-left: auto; font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.06em;
+        color: var(--accent); border: 1px solid var(--accent-dim); border-radius: 5px; padding: 1px 5px;
+      }
+      .tt-row { display: flex; justify-content: space-between; gap: 18px; color: var(--muted); }
+      .tt-row b { color: var(--text); font-family: var(--mono); font-weight: 500; }
 
       .empty {
-        color: var(--faint); font-size: 12.5px; padding: 46px 0; text-align: center;
-        border: 1px dashed var(--border); border-radius: 12px; margin-bottom: 12px;
+        color: var(--faint); font-size: 12.5px; padding: 44px 0; text-align: center;
+        border: 1px dashed var(--border); border-radius: 12px; margin: 8px 0 12px;
       }
       .status {
         display: flex; flex-direction: column; gap: 6px; align-items: center;
@@ -255,15 +274,14 @@ import Dashboard from "../components/Dashboard.tsx";
         background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
       }
       .sk-card { height: 280px; }
-      .sk-card.hero { height: 360px; margin-bottom: 16px; }
+      .sk-card.hero { height: 420px; margin-bottom: 14px; }
       .kpi.sk { height: 104px; }
       .sk-line { border: none; border-radius: 6px; height: 11px; display: block; }
       .sk-line.tall { height: 24px; }
       .w40 { width: 40%; } .w50 { width: 50%; } .w60 { width: 62%; }
       .kpi.sk { display: flex; flex-direction: column; gap: 10px; padding: 18px; justify-content: center; }
       .sk-card::after, .kpi.sk::after, .sk-line::after {
-        content: ""; position: absolute; inset: 0;
-        transform: translateX(-100%);
+        content: ""; position: absolute; inset: 0; transform: translateX(-100%);
         background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
         animation: shimmer 1.5s infinite;
       }

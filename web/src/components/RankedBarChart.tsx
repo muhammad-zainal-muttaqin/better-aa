@@ -4,12 +4,12 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Cell,
+  LabelList,
 } from "recharts";
 import type { Model } from "../lib/types";
-import { creatorColor } from "../lib/theme";
+import { creatorColor, real } from "../lib/theme";
 
 interface Props {
   title: string;
@@ -22,7 +22,15 @@ interface Props {
   topN?: number;
 }
 
-// Generic horizontal ranked bar used for Speed, Price and Tokens.
+// Pull the model's display short-name (drop parenthetical effort suffixes).
+function shortName(name: string): string {
+  const base = name.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+  return base.length > 26 ? base.slice(0, 25) + "…" : base;
+}
+
+// Generic horizontal ranked bar used for Speed, Price, Latency and Tokens.
+// A snapshot "0" means the value is missing, so it's filtered out — that keeps
+// "cheapest" / "snappiest" honest instead of surfacing zero-width phantom bars.
 export default function RankedBarChart({
   title,
   subtitle,
@@ -30,60 +38,85 @@ export default function RankedBarChart({
   metric,
   format,
   ascending = false,
-  topN = 12,
+  topN = 10,
 }: Props) {
   const data = models
-    .filter((m) => typeof m[metric] === "number")
-    .sort((a, b) => {
-      const av = a[metric] as number;
-      const bv = b[metric] as number;
-      return ascending ? av - bv : bv - av;
-    })
-    .slice(0, topN);
+    .map((m) => ({ ...m, _v: real(m[metric] as number | null) }))
+    .filter((m) => m._v !== null)
+    .sort((a, b) => (ascending ? a._v! - b._v! : b._v! - a._v!))
+    .slice(0, topN)
+    .map((m) => ({ ...m, label: shortName(m.name) }));
 
   if (data.length === 0) {
     return (
       <div className="card">
-        <h2>{title}</h2>
-        <p className="sub">{subtitle}</p>
+        <div className="card-head">
+          <h2>{title}</h2>
+          <p className="sub">{subtitle}</p>
+        </div>
         <p className="empty">Not provided by the Artificial Analysis API.</p>
       </div>
     );
   }
 
+  const maxV = Math.max(...data.map((d) => d._v!));
+
   return (
     <div className="card">
-      <h2>{title}</h2>
-      <p className="sub">{subtitle}</p>
-      <ResponsiveContainer width="100%" height={Math.max(220, data.length * 30)}>
-        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 56, bottom: 4, left: 8 }}>
-          <CartesianGrid stroke="rgba(255,255,255,0.06)" strokeDasharray="3 3" horizontal={false} />
-          <XAxis type="number" tick={{ fill: "#8a8a93", fontSize: 12 }} tickFormatter={(v) => format(v)} />
+      <div className="card-head">
+        <h2>{title}</h2>
+        <p className="sub">{subtitle}</p>
+      </div>
+      <ResponsiveContainer width="100%" height={Math.max(210, data.length * 32)}>
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 2, right: 54, bottom: 2, left: 4 }}
+          barCategoryGap="22%"
+        >
+          <XAxis type="number" domain={[0, maxV * 1.08]} hide />
           <YAxis
             type="category"
-            dataKey="name"
-            width={150}
-            tick={{ fill: "#c9c9d0", fontSize: 12 }}
+            dataKey="label"
+            width={148}
+            tick={{ fill: "#c9c9d0", fontSize: 11.5 }}
+            tickLine={false}
+            axisLine={false}
             interval={0}
           />
           <Tooltip
-            cursor={{ fill: "rgba(255,255,255,0.04)" }}
+            cursor={{ fill: "rgba(255,255,255,0.035)" }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
-              const m = payload[0].payload as Model;
+              const m = payload[0].payload as Model & { _v: number };
               return (
                 <div className="tooltip">
                   <strong>{m.name}</strong>
-                  <div>{m.creator}</div>
-                  <div>{format(m[metric] as number)}</div>
+                  <div className="tt-creator">
+                    <span className="ledot" style={{ ["--c" as any]: creatorColor(m.creator) }} />
+                    {m.creator}
+                  </div>
+                  <div className="tt-row">
+                    <span>{title}</span>
+                    <b>{format(m._v)}</b>
+                  </div>
                 </div>
               );
             }}
           />
-          <Bar dataKey={metric as string} radius={[0, 4, 4, 0]}>
+          <Bar dataKey="_v" radius={[0, 5, 5, 0]} isAnimationActive={false} maxBarSize={20}>
             {data.map((m) => (
-              <Cell key={m.id} fill={creatorColor(m.creator)} />
+              <Cell key={m.id} fill={creatorColor(m.creator)} fillOpacity={0.85} />
             ))}
+            <LabelList
+              dataKey="_v"
+              position="right"
+              offset={8}
+              formatter={(v: number) => format(v)}
+              fill="#9aa0aa"
+              fontSize={11}
+              style={{ fontFamily: "var(--mono)" }}
+            />
           </Bar>
         </BarChart>
       </ResponsiveContainer>

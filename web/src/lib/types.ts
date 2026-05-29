@@ -19,6 +19,7 @@ export interface Model {
   priceBlended: number | null;
 
   tokensUsed: number | null;
+  costToRun: number | null;
 }
 
 export interface Snapshot {
