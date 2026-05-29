@@ -1,5 +1,10 @@
 # CLAUDE.md — better-aa
 
+**Mission: we are making better artificialanalysis.** Every change should push the site
+toward being a sharper, faster, more useful version of Artificial Analysis — not just a
+clone. The user wants this to be a genuinely *dynamic* product (live, fresh data and rich
+interactivity), not a static brochure.
+
 A focused alternative to Artificial Analysis: charts + a tabbed, heatmapped, sortable
 table of LLM intelligence/benchmarks/speed/price/cost. See `README.md` for full setup.
 This file records the **non-obvious rules an agent must follow** so changes don't break

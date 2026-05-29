@@ -5,6 +5,9 @@ interface Stat {
   label: string;
   model: Model | null;
   value: string;
+  metric: keyof Model;
+  mode: "max" | "min";
+  fmt: "index" | "speed" | "price" | "latency";
 }
 
 function pick(
@@ -33,10 +36,10 @@ export default function StatStrip({ models }: { models: Model[] }) {
   const snappiest = pick(models, "latency", "min");
 
   const stats: Stat[] = [
-    { label: "Most intelligent", model: smartest, value: fmtIndex(smartest?.intelligence ?? null) },
-    { label: "Fastest output", model: fastest, value: fmtSpeed(fastest?.speed ?? null) },
-    { label: "Cheapest blended", model: cheapest, value: fmtPrice(cheapest?.priceBlended ?? null) },
-    { label: "Lowest latency", model: snappiest, value: fmtLatency(snappiest?.latency ?? null) },
+    { label: "Most intelligent", model: smartest, value: fmtIndex(smartest?.intelligence ?? null), metric: "intelligence", mode: "max", fmt: "index" },
+    { label: "Fastest output", model: fastest, value: fmtSpeed(fastest?.speed ?? null), metric: "speed", mode: "max", fmt: "speed" },
+    { label: "Cheapest blended", model: cheapest, value: fmtPrice(cheapest?.priceBlended ?? null), metric: "priceBlended", mode: "min", fmt: "price" },
+    { label: "Lowest latency", model: snappiest, value: fmtLatency(snappiest?.latency ?? null), metric: "latency", mode: "min", fmt: "latency" },
   ];
 
   return (
@@ -45,6 +48,9 @@ export default function StatStrip({ models }: { models: Model[] }) {
         <article
           className="kpi"
           key={s.label}
+          data-metric={s.metric}
+          data-mode={s.mode}
+          data-fmt={s.fmt}
           style={{
             ["--i" as any]: i,
             ["--c" as any]: s.model ? creatorColor(s.model.creator) : "var(--accent)",

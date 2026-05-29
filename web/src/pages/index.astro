@@ -3,6 +3,7 @@ import snapshot from "../../public/snapshot.json";
 import StatStrip from "../components/StatStrip.tsx";
 import ModelTable from "../components/ModelTable.tsx";
 import App from "../components/App.tsx";
+import { CREATOR_COLORS } from "../lib/theme";
 
 // HTML-first: the data (StatStrip + ModelTable) is rendered to static HTML at
 // build time, so it's always visible regardless of JS, extensions, or browser
@@ -95,6 +96,11 @@ const sortData = models.map((m: any) => {
         id="sortdata"
         set:html={JSON.stringify(sortData)}
       />
+      <script
+        type="application/json"
+        id="creatorcolors"
+        set:html={JSON.stringify(CREATOR_COLORS)}
+      />
     </main>
 
     <script is:inline>
@@ -112,6 +118,75 @@ const sortData = models.map((m: any) => {
         }
         var map = {};
         for (var i = 0; i < rows.length; i++) map[rows[i].id] = rows[i];
+
+        var creatorColors = {};
+        var ccEl = document.getElementById("creatorcolors");
+        if (ccEl) { try { creatorColors = JSON.parse(ccEl.textContent || "{}"); } catch (e) {} }
+        function colorFor(c) { return creatorColors[c] || "#9aa0aa"; }
+
+        // Vanilla mirrors of theme.ts formatters, used to recompute the KPI tiles
+        // from the active date window (the SSR render covers JS-off).
+        function fmtKpi(kind, v) {
+          if (v === null || v === undefined) return "—";
+          if (kind === "index") return v.toFixed(1);
+          if (kind === "speed") return v.toFixed(0) + " t/s";
+          if (kind === "latency") return v.toFixed(2) + " s";
+          if (kind === "price") {
+            if (v === 0) return "$0";
+            if (v < 0.01) return "$" + v.toFixed(4);
+            if (v < 1) return "$" + v.toFixed(3);
+            if (v >= 100) return "$" + v.toFixed(0);
+            return "$" + v.toFixed(2);
+          }
+          return String(v);
+        }
+
+        var kpiCards = document.querySelectorAll(".kpi-strip .kpi");
+        function updateKpis(from, to) {
+          if (!kpiCards.length) return;
+          // Pool = models inside the date window (independent of the text search,
+          // same set the charts use). No window => all models.
+          var pool = rows;
+          if (from || to) {
+            pool = rows.filter(function (r) {
+              var d = (r.releaseDate || "").slice(0, 10);
+              if (!d) return false;
+              if (from && d < from) return false;
+              if (to && d > to) return false;
+              return true;
+            });
+          }
+          for (var c = 0; c < kpiCards.length; c++) {
+            var card = kpiCards[c];
+            var metric = card.getAttribute("data-metric");
+            var mode = card.getAttribute("data-mode");
+            var fmt = card.getAttribute("data-fmt");
+            var best = null;
+            for (var p = 0; p < pool.length; p++) {
+              var val = pool[p][metric];
+              if (typeof val !== "number" || !(val > 0)) continue;
+              if (best === null || (mode === "max" ? val > best[metric] : val < best[metric])) best = pool[p];
+            }
+            var valEl = card.querySelector(".kpi-value");
+            var modelEl = card.querySelector(".kpi-model");
+            if (valEl) valEl.textContent = best ? fmtKpi(fmt, best[metric]) : "—";
+            if (best) {
+              var col = colorFor(best.creator);
+              card.style.setProperty("--c", col);
+              if (modelEl) {
+                modelEl.textContent = "";
+                var dot = document.createElement("span");
+                dot.className = "ledot";
+                dot.style.setProperty("--c", col);
+                modelEl.appendChild(dot);
+                modelEl.appendChild(document.createTextNode(best.name));
+                modelEl.style.display = "";
+              }
+            } else if (modelEl) {
+              modelEl.style.display = "none";
+            }
+          }
+        }
 
         var table = card.querySelector("table");
         var tbody = table.querySelector("tbody");
@@ -173,8 +248,10 @@ const sortData = models.map((m: any) => {
           }
           if (countEl) countEl.textContent = String(rank);
 
-          // Broadcast the active date window so the charts island (the only
-          // hydrated React) can reshape its visuals to match. No-op with JS off.
+          // Recompute the headline KPI tiles for the active date window, and
+          // broadcast it so the charts island (the only hydrated React) reshapes
+          // its visuals to match. Both no-op / stay on the SSR values with JS off.
+          updateKpis(from, to);
           try {
             window.dispatchEvent(
               new CustomEvent("betteraa:daterange", { detail: { from: from, to: to } }),
