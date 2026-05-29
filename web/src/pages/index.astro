@@ -1,5 +1,5 @@
 ---
-import Dashboard from "../components/Dashboard.tsx";
+import App from "../components/App.tsx";
 ---
 
 <!doctype html>
@@ -46,8 +46,10 @@ import Dashboard from "../components/Dashboard.tsx";
       </div>
     </header>
 
-    <main class="wrap">
-      <Dashboard client:load />
+    <!-- translate="no": the dashboard is numbers + model names; browser
+         auto-translate rewrites its DOM nodes and crashes React (blank panel). -->
+    <main class="wrap" translate="no">
+      <App client:load />
     </main>
 
     <footer class="wrap">
