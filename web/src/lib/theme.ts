@@ -92,6 +92,28 @@ export function fmtDate(v: string | null): string {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short" });
 }
 
+// ---- Heatmap ----------------------------------------------------------------
+// Goodness-graded cell background, baked into static HTML at build time (no JS).
+// Normalizes a value to t∈[0,1] where 1 = best in its column, 0 = worst, then
+// returns a subtle accent-teal tint. `lowerBetter` inverts the scale for metrics
+// where smaller wins (price, latency, cost-to-run, tokens-used). Returns "" for
+// missing values or a degenerate (flat) column so they stay un-tinted.
+export function heatBg(
+  value: number | null,
+  min: number,
+  max: number,
+  lowerBetter = false,
+): string {
+  if (value === null || !Number.isFinite(value)) return "";
+  if (max <= min) return "";
+  let t = (value - min) / (max - min); // 0 = worst raw, 1 = best raw
+  if (lowerBetter) t = 1 - t;
+  t = Math.max(0, Math.min(1, t));
+  // 0.04 floor keeps low cells faintly visible; 0.26 ceiling stays readable.
+  const alpha = (0.04 + 0.22 * t).toFixed(3);
+  return `rgba(45, 212, 191, ${alpha})`;
+}
+
 // Compact modality glyphs for a capabilities cell.
 const MODALITY_GLYPH: Record<string, string> = {
   text: "T",
