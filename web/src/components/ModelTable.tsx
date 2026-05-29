@@ -198,6 +198,20 @@ export default function ModelTable({ models }: { models: Model[] }) {
             onChange={(e) => setQuery(e.target.value)}
             aria-label="Filter models by name or creator"
           />
+          {/* Release-date range. Inert with JS off (all rows show); the vanilla
+              script in index.astro wires filtering + the relative presets. */}
+          <div className="date-filter">
+            <span className="df-label">Released</span>
+            <input className="date-from" type="date" aria-label="Released on or after" />
+            <span className="df-sep">→</span>
+            <input className="date-to" type="date" aria-label="Released on or before" />
+            <div className="df-presets" role="group" aria-label="Quick date ranges">
+              <button type="button" className="df-chip" data-months="6">6mo</button>
+              <button type="button" className="df-chip" data-months="12">1y</button>
+              <button type="button" className="df-chip" data-months="24">2y</button>
+              <button type="button" className="df-chip" data-months="0">All</button>
+            </div>
+          </div>
         </div>
       </div>
       <div className="table-wrap">
@@ -232,7 +246,13 @@ export default function ModelTable({ models }: { models: Model[] }) {
           </thead>
           <tbody>
             {sorted.map((m, i) => (
-              <tr key={m.id} data-id={m.id} data-creator={m.creator} data-name={m.name}>
+              <tr
+                key={m.id}
+                data-id={m.id}
+                data-creator={m.creator}
+                data-name={m.name}
+                data-released={m.releaseDate ?? ""}
+              >
                 <td className="rankcol col v-overview v-bench v-price">{i + 1}</td>
                 <td className="model-cell stickycol col v-overview v-bench v-price">{m.name}</td>
                 {COLUMNS.map((c) => {

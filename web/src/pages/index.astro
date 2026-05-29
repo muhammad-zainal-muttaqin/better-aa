@@ -116,6 +116,8 @@ const sortData = models.map((m: any) => {
         var table = card.querySelector("table");
         var tbody = table.querySelector("tbody");
         var search = card.querySelector(".search");
+        var dateFrom = card.querySelector(".date-from");
+        var dateTo = card.querySelector(".date-to");
         var countEl = card.querySelector(".rowcount");
         var sortKey = "intelligence";
         var asc = false;
@@ -126,6 +128,8 @@ const sortData = models.map((m: any) => {
 
         function apply() {
           var q = (search && search.value ? search.value : "").trim().toLowerCase();
+          var from = dateFrom && dateFrom.value ? dateFrom.value : "";
+          var to = dateTo && dateTo.value ? dateTo.value : "";
           var trs = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
 
           // Sort all rows by the active key (nulls always last).
@@ -149,7 +153,17 @@ const sortData = models.map((m: any) => {
             tbody.appendChild(tr); // reorder
             var name = (tr.getAttribute("data-name") || "").toLowerCase();
             var creator = (tr.getAttribute("data-creator") || "").toLowerCase();
-            var show = !q || name.indexOf(q) !== -1 || creator.indexOf(q) !== -1;
+            var matchQ = !q || name.indexOf(q) !== -1 || creator.indexOf(q) !== -1;
+            // Release-date range (ISO YYYY-MM-DD sorts lexicographically). When a
+            // bound is set, undated models drop out so the window is honest.
+            var inRange = true;
+            if (from || to) {
+              var rel = (tr.getAttribute("data-released") || "").slice(0, 10);
+              if (!rel) inRange = false;
+              else if (from && rel < from) inRange = false;
+              else if (to && rel > to) inRange = false;
+            }
+            var show = matchQ && inRange;
             tr.style.display = show ? "" : "none";
             if (show) {
               rank++;
@@ -186,6 +200,35 @@ const sortData = models.map((m: any) => {
           })(headers[h]);
         }
         if (search) search.addEventListener("input", apply);
+        function onDateEdit() {
+          var cs = card.querySelectorAll(".df-chip.active");
+          for (var i = 0; i < cs.length; i++) cs[i].classList.remove("active");
+          apply();
+        }
+        if (dateFrom) dateFrom.addEventListener("change", onDateEdit);
+        if (dateTo) dateTo.addEventListener("change", onDateEdit);
+
+        // Relative presets: "1y" => released within the last 12 months (from =
+        // today minus N months, to cleared); "All" (0 months) clears both.
+        function isoMonthsAgo(months) {
+          var d = new Date();
+          d.setMonth(d.getMonth() - months);
+          var mm = String(d.getMonth() + 1);
+          var dd = String(d.getDate());
+          return d.getFullYear() + "-" + (mm.length < 2 ? "0" + mm : mm) + "-" + (dd.length < 2 ? "0" + dd : dd);
+        }
+        var chips = card.querySelectorAll(".df-chip");
+        for (var c = 0; c < chips.length; c++) {
+          (function (chip) {
+            chip.addEventListener("click", function () {
+              var months = parseInt(chip.getAttribute("data-months"), 10) || 0;
+              if (dateFrom) dateFrom.value = months > 0 ? isoMonthsAgo(months) : "";
+              if (dateTo) dateTo.value = "";
+              for (var k = 0; k < chips.length; k++) chips[k].classList.toggle("active", chips[k] === chip);
+              apply();
+            });
+          })(chips[c]);
+        }
 
         // Preset view tabs: swap the table's `view-*` class so CSS reveals only
         // that view's columns. Default view is baked server-side (Overview), so
@@ -419,6 +462,32 @@ const sortData = models.map((m: any) => {
       .search:focus { outline: none; border-color: var(--accent); }
       .search::placeholder { color: var(--faint); }
 
+      /* Release-date range filter. */
+      .date-filter { display: inline-flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+      .df-label {
+        color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+      .date-from, .date-to {
+        background: var(--surface-2); border: 1px solid var(--border); color: var(--text);
+        border-radius: 9px; padding: 8px 10px; font-size: 12.5px; font-family: inherit;
+        color-scheme: dark; transition: border-color 0.18s var(--ease);
+      }
+      .date-from:focus, .date-to:focus { outline: none; border-color: var(--accent); }
+      .df-sep { color: var(--faint); font-size: 12px; }
+      .df-presets { display: inline-flex; gap: 4px; }
+      .df-chip {
+        appearance: none; border: 1px solid var(--border); background: var(--surface-2);
+        color: var(--muted); font-family: inherit; font-size: 12px; font-weight: 500;
+        padding: 7px 10px; border-radius: 8px; cursor: pointer; line-height: 1;
+        transition: color 0.16s var(--ease), border-color 0.16s var(--ease), background 0.16s var(--ease);
+      }
+      .df-chip:hover { color: var(--text); border-color: var(--border-strong); }
+      .df-chip.active {
+        color: var(--accent); border-color: var(--accent);
+        background: var(--accent-dim);
+      }
+
       .table-wrap { overflow-x: auto; margin: 0 -8px; }
       table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
 
@@ -474,6 +543,9 @@ const sortData = models.map((m: any) => {
         .tabbar { flex: 1; }
         .tab { flex: 1; text-align: center; padding: 8px 6px; }
         .search { width: 100%; max-width: none; }
+        .date-filter { width: 100%; }
+        .date-from, .date-to { flex: 1; min-width: 0; }
+        .df-presets { flex: 1; justify-content: space-between; }
       }
 
       /* ---------- Tooltip / states ---------- */
