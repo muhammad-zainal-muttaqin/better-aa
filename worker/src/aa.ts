@@ -87,20 +87,8 @@ export function normalize(raw: RawModel): Model {
       "price_1m_blended",
     ]),
 
-    // "Tokens used" is not documented; probe several plausible keys across the
-    // model root and the evaluations object. Falls back to null if none exist.
-    tokensUsed:
-      firstNum(raw, [
-        "median_tokens_used",
-        "intelligence_index_tokens_used",
-        "tokens_used",
-        "evaluation_tokens_used",
-      ]) ??
-      firstNum(ev, [
-        "tokens_used",
-        "artificial_analysis_intelligence_index_tokens_used",
-        "intelligence_index_tokens_used",
-      ]),
+    // Not in the API — enriched later from the scraped models page (see scrape.ts).
+    tokensUsed: null,
   };
 }
 

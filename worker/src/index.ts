@@ -8,6 +8,7 @@
 // 1000 req/day rate limit is never a concern.
 
 import { fetchModels } from "./aa";
+import { fetchTokenCounts } from "./scrape";
 import type { Snapshot } from "./types";
 
 export interface Env {
@@ -36,6 +37,24 @@ async function ingest(env: Env): Promise<Snapshot> {
     throw new Error("AA_API_KEY secret is not set (wrangler secret put AA_API_KEY)");
   }
   const models = await fetchModels(env.AA_API_KEY);
+
+  // Enrich with tokens-used scraped from the models page (not in the API).
+  // Best-effort: a scrape failure must not break the daily ingest.
+  try {
+    const tokenMap = await fetchTokenCounts();
+    let hits = 0;
+    for (const m of models) {
+      const t = tokenMap[m.id];
+      if (typeof t === "number") {
+        m.tokensUsed = t;
+        hits++;
+      }
+    }
+    console.log(`Token counts merged: ${hits}/${models.length} models`);
+  } catch (err) {
+    console.warn("Token-count scrape failed (continuing without):", err);
+  }
+
   const snapshot: Snapshot = {
     generatedAt: new Date().toISOString(),
     source: "artificialanalysis.ai/api/v2",

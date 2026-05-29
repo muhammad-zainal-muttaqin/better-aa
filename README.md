@@ -86,7 +86,9 @@ set the `PUBLIC_API_BASE` environment variable to your deployed Worker URL
 
 ## Notes
 
-- **Tokens used**: AA doesn't document this field. `normalize()` probes several plausible
-  keys and falls back to `null`; confirm the right key from the first live response and pin it.
+- **Tokens used**: the v2 API does not expose this. The Worker scrapes it from the embedded
+  data on the `/models` page (`worker/src/scrape.ts` → `intelligence_index_token_counts`)
+  and joins it to the API models by the shared `id` UUID. This is best-effort — if the page
+  markup changes, the ingest continues with `tokensUsed: null` rather than failing.
 - Keep `worker/src/types.ts` and `web/src/lib/types.ts` in sync.
 - Independent project, not affiliated with Artificial Analysis.

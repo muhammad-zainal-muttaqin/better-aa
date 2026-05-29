@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Model, Snapshot } from "../lib/types";
-import { CREATOR_COLORS, fmtPrice, fmtSpeed, fmtLatency } from "../lib/theme";
+import { CREATOR_COLORS, fmtPrice, fmtSpeed, fmtLatency, fmtTokens } from "../lib/theme";
 import IntelligencePriceChart from "./IntelligencePriceChart";
 import RankedBarChart from "./RankedBarChart";
 import ModelTable from "./ModelTable";
@@ -129,10 +129,10 @@ export default function Dashboard() {
         <div style={{ ["--i" as any]: 4 }}>
           <RankedBarChart
             title="Tokens used"
-            subtitle="Tokens to run the Intelligence Index."
+            subtitle="Output tokens to run the Intelligence Index."
             models={filtered}
             metric="tokensUsed"
-            format={(v) => (v === null ? "—" : String(v))}
+            format={fmtTokens}
           />
         </div>
       </div>
