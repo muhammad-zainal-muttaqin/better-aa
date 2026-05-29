@@ -119,13 +119,13 @@ export default function ModelTable({ models }: { models: Model[] }) {
   const maxInt = Math.max(1, ...models.map((m) => m.intelligence ?? 0));
 
   return (
-    <div className="card">
+    <div className="card" id="model-table">
       <div className="card-head table-head">
         <div>
           <h2>All models</h2>
           <p className="sub">
-            {visible.length} models · {COLUMNS.length + 1} metrics · click a column to sort, scroll
-            for more →
+            <span className="rowcount">{visible.length}</span> models · {COLUMNS.length + 1} metrics
+            · click a column to sort, scroll for more →
           </p>
         </div>
         <input
@@ -144,6 +144,7 @@ export default function ModelTable({ models }: { models: Model[] }) {
               <th className="rankcol">#</th>
               <th
                 className="stickycol"
+                data-key="name"
                 onClick={() => toggle("name")}
                 aria-sort={sortKey === "name" ? (asc ? "ascending" : "descending") : "none"}
               >
@@ -154,6 +155,8 @@ export default function ModelTable({ models }: { models: Model[] }) {
                 <th
                   key={c.key}
                   className={c.numeric ? "num" : ""}
+                  data-key={c.key}
+                  data-numeric={c.numeric ? "1" : "0"}
                   title={c.title}
                   onClick={() => toggle(c.key)}
                   aria-sort={sortKey === c.key ? (asc ? "ascending" : "descending") : "none"}
@@ -166,7 +169,7 @@ export default function ModelTable({ models }: { models: Model[] }) {
           </thead>
           <tbody>
             {sorted.map((m, i) => (
-              <tr key={m.id}>
+              <tr key={m.id} data-id={m.id} data-creator={m.creator} data-name={m.name}>
                 <td className="rankcol">{i + 1}</td>
                 <td className="model-cell stickycol">{m.name}</td>
                 {COLUMNS.map((c) => {

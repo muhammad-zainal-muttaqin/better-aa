@@ -1,12 +1,14 @@
+import type { Model } from "../lib/types";
 import ErrorBoundary from "./ErrorBoundary";
-import Dashboard from "./Dashboard";
+import ChartsIsland from "./ChartsIsland";
 
-// Single hydration root: an error boundary around the dashboard so a client-side
-// crash degrades to a visible, recoverable message instead of a blank panel.
-export default function App() {
+// Hydration root for the (non-critical) charts only. Wrapped in an error
+// boundary so a crash here degrades to a small message and never touches the
+// static StatStrip / ModelTable rendered by Astro around it.
+export default function App({ models }: { models: Model[] }) {
   return (
     <ErrorBoundary>
-      <Dashboard />
+      <ChartsIsland models={models} />
     </ErrorBoundary>
   );
 }

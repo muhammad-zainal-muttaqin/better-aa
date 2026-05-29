@@ -25,12 +25,9 @@ export default class ErrorBoundary extends Component<Props, State> {
   render() {
     if (this.state.error) {
       return (
-        <div className="status error">
-          <strong>Something interrupted the page.</strong>
-          <span className="sub">
-            If your browser is auto-translating this page, turn translation off for this
-            site — it conflicts with the live charts.
-          </span>
+        <div className="status error" style={{ padding: "40px 0" }}>
+          <strong>Charts couldn’t load.</strong>
+          <span className="sub">The full data table below is unaffected.</span>
           <button className="chip" style={{ marginTop: 10, cursor: "pointer" }} onClick={() => location.reload()}>
             Reload
           </button>

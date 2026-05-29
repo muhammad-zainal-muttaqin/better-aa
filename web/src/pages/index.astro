@@ -1,5 +1,35 @@
 ---
+import snapshot from "../../public/snapshot.json";
+import StatStrip from "../components/StatStrip.tsx";
+import ModelTable from "../components/ModelTable.tsx";
 import App from "../components/App.tsx";
+
+// HTML-first: the data (StatStrip + ModelTable) is rendered to static HTML at
+// build time, so it's always visible regardless of JS, extensions, or browser
+// translate. Charts are the only hydrated island (a non-critical enhancement).
+const models = snapshot.models;
+const updated = new Date(snapshot.generatedAt).toLocaleDateString("en-US", {
+  year: "numeric",
+  month: "short",
+  day: "numeric",
+});
+
+// Compact per-row values so a tiny vanilla script can sort/filter the static
+// table — no React needed for interactivity.
+const SORT_KEYS = [
+  "name", "creator", "intelligence", "gpqa", "livecodebench", "aime", "mmluPro",
+  "hle", "contextWindow", "inputModalities", "reasoning", "speed", "latency",
+  "priceInput", "priceOutput", "priceBlended", "tokensUsed", "costToRun", "releaseDate",
+];
+const sortData = models.map((m: any) => {
+  const o: Record<string, unknown> = { id: m.id };
+  for (const k of SORT_KEYS) {
+    if (k === "inputModalities") o[k] = (m.inputModalities ?? []).length;
+    else if (k === "reasoning") o[k] = m.reasoning ? 1 : 0;
+    else o[k] = m[k];
+  }
+  return o;
+});
 ---
 
 <!doctype html>
@@ -47,10 +77,119 @@ import App from "../components/App.tsx";
     </header>
 
     <!-- translate="no": the dashboard is numbers + model names; browser
-         auto-translate rewrites its DOM nodes and crashes React (blank panel). -->
+         auto-translate rewrites DOM nodes and can crash hydrated islands. -->
     <main class="wrap" translate="no">
-      <App client:load />
+      <StatStrip models={models} />
+
+      <div class="updated-line">
+        {models.length} models · updated {updated}
+      </div>
+
+      <!-- Charts: the only hydrated island, a non-critical enhancement. -->
+      <App models={models} client:load />
+
+      <ModelTable models={models} />
+
+      <script
+        type="application/json"
+        id="sortdata"
+        set:html={JSON.stringify(sortData)}
+      />
     </main>
+
+    <script is:inline>
+      // Vanilla progressive enhancement for the static table: sort + filter with
+      // no framework, so it works even if the charts island never hydrates.
+      (function () {
+        var el = document.getElementById("sortdata");
+        var card = document.getElementById("model-table");
+        if (!el || !card) return;
+        var rows;
+        try {
+          rows = JSON.parse(el.textContent || "[]");
+        } catch (e) {
+          return;
+        }
+        var map = {};
+        for (var i = 0; i < rows.length; i++) map[rows[i].id] = rows[i];
+
+        var table = card.querySelector("table");
+        var tbody = table.querySelector("tbody");
+        var search = card.querySelector(".search");
+        var countEl = card.querySelector(".rowcount");
+        var sortKey = "intelligence";
+        var asc = false;
+
+        function isEmpty(v) {
+          return v === null || v === undefined || v === "";
+        }
+
+        function apply() {
+          var q = (search && search.value ? search.value : "").trim().toLowerCase();
+          var trs = Array.prototype.slice.call(tbody.querySelectorAll("tr"));
+
+          // Sort all rows by the active key (nulls always last).
+          trs.sort(function (ra, rb) {
+            var a = map[ra.getAttribute("data-id")];
+            var b = map[rb.getAttribute("data-id")];
+            a = a ? a[sortKey] : null;
+            b = b ? b[sortKey] : null;
+            if (isEmpty(a) && isEmpty(b)) return 0;
+            if (isEmpty(a)) return 1;
+            if (isEmpty(b)) return -1;
+            if (typeof a === "string" && typeof b === "string") {
+              return asc ? a.localeCompare(b) : b.localeCompare(a);
+            }
+            return asc ? a - b : b - a;
+          });
+
+          var rank = 0;
+          for (var i = 0; i < trs.length; i++) {
+            var tr = trs[i];
+            tbody.appendChild(tr); // reorder
+            var name = (tr.getAttribute("data-name") || "").toLowerCase();
+            var creator = (tr.getAttribute("data-creator") || "").toLowerCase();
+            var show = !q || name.indexOf(q) !== -1 || creator.indexOf(q) !== -1;
+            tr.style.display = show ? "" : "none";
+            if (show) {
+              rank++;
+              var rc = tr.querySelector(".rankcol");
+              if (rc) rc.textContent = String(rank);
+            }
+          }
+          if (countEl) countEl.textContent = String(rank);
+
+          // Update sort carets.
+          var ths = card.querySelectorAll("thead th[data-key]");
+          for (var j = 0; j < ths.length; j++) {
+            var th = ths[j];
+            var caret = th.querySelector(".sortcaret");
+            if (!caret) continue;
+            caret.textContent = th.getAttribute("data-key") === sortKey ? (asc ? " ↑" : " ↓") : "";
+          }
+        }
+
+        var headers = card.querySelectorAll("thead th[data-key]");
+        for (var h = 0; h < headers.length; h++) {
+          (function (th) {
+            th.style.cursor = "pointer";
+            th.addEventListener("click", function () {
+              var k = th.getAttribute("data-key");
+              if (k === sortKey) {
+                asc = !asc;
+              } else {
+                sortKey = k;
+                asc = k === "name" || k === "creator" || k === "releaseDate";
+              }
+              apply();
+            });
+          })(headers[h]);
+        }
+        if (search) search.addEventListener("input", apply);
+
+        apply();
+      })();
+    </script>
 
     <footer class="wrap">
       <p>
@@ -168,6 +307,7 @@ import App from "../components/App.tsx";
         justify-content: space-between; margin: 4px 0 16px;
       }
       .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+      .updated-line { color: var(--faint); font-size: 12px; font-family: var(--mono); margin: 0 0 16px; }
       .updated { color: var(--faint); font-size: 12px; font-family: var(--mono); display: flex; align-items: center; gap: 10px; }
       .cached-badge {
         color: #e0b84a; border: 1px solid rgba(224, 184, 74, 0.3);
