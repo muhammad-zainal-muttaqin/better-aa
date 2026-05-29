@@ -90,6 +90,44 @@ export function normalize(raw: RawModel): Model {
     // Not in the API — enriched later from the scraped models page (see scrape.ts).
     tokensUsed: null,
     costToRun: null,
+
+    gpqa: null,
+    hle: null,
+    livecodebench: null,
+    math500: null,
+    mmluPro: null,
+    mmmuPro: null,
+    scicode: null,
+    aime: null,
+    ifbench: null,
+    tau2: null,
+    terminalBench: null,
+    lcr: null,
+
+    agenticIndex: null,
+    omniscience: null,
+    gdpval: null,
+    multilingualAvg: null,
+
+    contextWindow: null,
+    maxOutput: null,
+    inputModalities: [],
+    outputModalities: [],
+    reasoning: null,
+    sizeClass: null,
+
+    releaseDate: null,
+    knowledgeCutoff: null,
+    license: null,
+    openWeights: null,
+    openness: null,
+    modelFamily: null,
+
+    cachePrice: null,
+    cacheDiscount: null,
+
+    speedP5: null,
+    speedP95: null,
   };
 }
 

@@ -68,3 +68,38 @@ export function fmtTokens(v: number | null): string {
   if (v >= 1_000) return `${(v / 1_000).toFixed(0)}K`;
   return String(v);
 }
+
+// Benchmark score, already 0-100 (%). Renders "—" when absent.
+export function fmtPct(v: number | null): string {
+  return v === null ? "—" : `${v.toFixed(1)}%`;
+}
+
+// Context window / max output tokens -> compact "128k" / "1M".
+export function fmtContext(v: number | null): string {
+  if (v === null || v <= 0) return "—";
+  if (v >= 1_000_000) {
+    const m = v / 1_000_000;
+    return `${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}M`;
+  }
+  return `${Math.round(v / 1000)}k`;
+}
+
+// ISO date -> "Mar 2026". Null-safe.
+export function fmtDate(v: string | null): string {
+  if (!v) return "—";
+  const d = new Date(v);
+  if (isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString(undefined, { year: "numeric", month: "short" });
+}
+
+// Compact modality glyphs for a capabilities cell.
+const MODALITY_GLYPH: Record<string, string> = {
+  text: "T",
+  image: "🖼",
+  speech: "🔊",
+  video: "🎬",
+};
+export function modalityGlyphs(mods: string[] | undefined): string {
+  if (!mods || mods.length === 0) return "—";
+  return mods.map((m) => MODALITY_GLYPH[m] ?? m[0]?.toUpperCase()).join(" ");
+}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type { Model } from "../lib/types";
 import {
   creatorColor,
@@ -9,52 +9,95 @@ import {
   fmtPrice,
   fmtCost,
   fmtTokens,
+  fmtPct,
+  fmtContext,
+  fmtDate,
+  modalityGlyphs,
 } from "../lib/theme";
 
-type SortKey =
-  | "name"
-  | "creator"
-  | "intelligence"
-  | "speed"
-  | "latency"
-  | "priceInput"
-  | "priceOutput"
-  | "priceBlended"
-  | "tokensUsed"
-  | "costToRun";
-
 interface Col {
-  key: SortKey;
+  key: string;
   label: string;
+  title?: string; // header tooltip
   numeric: boolean;
+  sortVal: (m: Model) => number | string | null;
+  render: (m: Model) => ReactNode;
 }
 
+// Driven entirely by this config — add a column by adding a row.
 const COLUMNS: Col[] = [
-  { key: "name", label: "Model", numeric: false },
-  { key: "creator", label: "Creator", numeric: false },
-  { key: "intelligence", label: "Intelligence", numeric: true },
-  { key: "speed", label: "Speed", numeric: true },
-  { key: "latency", label: "Latency", numeric: true },
-  { key: "priceInput", label: "In $/1M", numeric: true },
-  { key: "priceOutput", label: "Out $/1M", numeric: true },
-  { key: "priceBlended", label: "Blended", numeric: true },
-  { key: "tokensUsed", label: "Tokens used", numeric: true },
-  { key: "costToRun", label: "Cost to run", numeric: true },
+  {
+    key: "creator",
+    label: "Creator",
+    numeric: false,
+    sortVal: (m) => m.creator,
+    render: (m) => (
+      <span className="chip" style={{ ["--c" as any]: creatorColor(m.creator) }}>
+        <span className="ledot" style={{ ["--c" as any]: creatorColor(m.creator) }} />
+        {m.creator}
+      </span>
+    ),
+  },
+  {
+    key: "intelligence",
+    label: "Intelligence",
+    title: "Artificial Analysis Intelligence Index",
+    numeric: true,
+    sortVal: (m) => m.intelligence,
+    render: () => null, // special-cased (bar) in the body
+  },
+  { key: "gpqa", label: "GPQA", title: "GPQA Diamond — graduate science reasoning", numeric: true, sortVal: (m) => m.gpqa, render: (m) => fmtPct(m.gpqa) },
+  { key: "livecodebench", label: "LiveCodeBench", title: "Coding — LiveCodeBench", numeric: true, sortVal: (m) => m.livecodebench, render: (m) => fmtPct(m.livecodebench) },
+  { key: "aime", label: "AIME", title: "AIME 2025 — competition math", numeric: true, sortVal: (m) => m.aime, render: (m) => fmtPct(m.aime) },
+  { key: "mmluPro", label: "MMLU-Pro", title: "MMLU-Pro — broad knowledge", numeric: true, sortVal: (m) => m.mmluPro, render: (m) => fmtPct(m.mmluPro) },
+  { key: "hle", label: "HLE", title: "Humanity's Last Exam", numeric: true, sortVal: (m) => m.hle, render: (m) => fmtPct(m.hle) },
+  { key: "contextWindow", label: "Context", title: "Context window (tokens)", numeric: true, sortVal: (m) => m.contextWindow, render: (m) => fmtContext(m.contextWindow) },
+  {
+    key: "inputModalities",
+    label: "Inputs",
+    title: "Input modalities",
+    numeric: false,
+    sortVal: (m) => m.inputModalities?.length ?? 0,
+    render: (m) => <span className="mods">{modalityGlyphs(m.inputModalities)}</span>,
+  },
+  {
+    key: "reasoning",
+    label: "Type",
+    title: "Reasoning model / open weights",
+    numeric: false,
+    sortVal: (m) => (m.reasoning ? 1 : 0),
+    render: (m) => (
+      <span className="tags">
+        {m.reasoning ? <span className="tag reason">reasoning</span> : null}
+        {m.openWeights ? <span className="tag open">open</span> : null}
+        {!m.reasoning && !m.openWeights ? "—" : null}
+      </span>
+    ),
+  },
+  { key: "speed", label: "Speed", title: "Median output tokens/sec", numeric: true, sortVal: (m) => m.speed, render: (m) => fmtSpeed(real(m.speed)) },
+  { key: "latency", label: "Latency", title: "Time to first token (s)", numeric: true, sortVal: (m) => m.latency, render: (m) => fmtLatency(real(m.latency)) },
+  { key: "priceInput", label: "In $/1M", numeric: true, sortVal: (m) => m.priceInput, render: (m) => fmtPrice(real(m.priceInput)) },
+  { key: "priceOutput", label: "Out $/1M", numeric: true, sortVal: (m) => m.priceOutput, render: (m) => fmtPrice(real(m.priceOutput)) },
+  { key: "priceBlended", label: "Blended", title: "Blended $/1M (3:1 input:output)", numeric: true, sortVal: (m) => m.priceBlended, render: (m) => fmtPrice(real(m.priceBlended)) },
+  { key: "tokensUsed", label: "Tokens used", title: "Output tokens to run the Intelligence Index", numeric: true, sortVal: (m) => m.tokensUsed, render: (m) => fmtTokens(m.tokensUsed) },
+  { key: "costToRun", label: "Cost to run", title: "USD to run the full Intelligence Index", numeric: true, sortVal: (m) => m.costToRun, render: (m) => fmtCost(m.costToRun) },
+  { key: "releaseDate", label: "Released", numeric: false, sortVal: (m) => m.releaseDate ?? "", render: (m) => fmtDate(m.releaseDate) },
 ];
 
 export default function ModelTable({ models }: { models: Model[] }) {
-  const [sortKey, setSortKey] = useState<SortKey>("intelligence");
+  const [sortKey, setSortKey] = useState<string>("intelligence");
   const [asc, setAsc] = useState(false);
   const [query, setQuery] = useState("");
 
-  function toggle(key: SortKey) {
+  function toggle(key: string) {
     if (key === sortKey) setAsc(!asc);
     else {
       setSortKey(key);
-      setAsc(key === "name" || key === "creator");
+      setAsc(key === "name" || key === "creator" || key === "releaseDate");
     }
   }
 
+  const col = COLUMNS.find((c) => c.key === sortKey);
   const q = query.trim().toLowerCase();
   const visible = q
     ? models.filter(
@@ -63,10 +106,10 @@ export default function ModelTable({ models }: { models: Model[] }) {
     : models;
 
   const sorted = [...visible].sort((a, b) => {
-    const av = a[sortKey];
-    const bv = b[sortKey];
-    if (av === null) return 1;
-    if (bv === null) return -1;
+    const av = col ? col.sortVal(a) : (a.name as string);
+    const bv = col ? col.sortVal(b) : (b.name as string);
+    if (av === null || av === "") return 1;
+    if (bv === null || bv === "") return -1;
     if (typeof av === "string" && typeof bv === "string") {
       return asc ? av.localeCompare(bv) : bv.localeCompare(av);
     }
@@ -80,7 +123,10 @@ export default function ModelTable({ models }: { models: Model[] }) {
       <div className="card-head table-head">
         <div>
           <h2>All models</h2>
-          <p className="sub">{visible.length} models · click a column to sort.</p>
+          <p className="sub">
+            {visible.length} models · {COLUMNS.length + 1} metrics · click a column to sort, scroll
+            for more →
+          </p>
         </div>
         <input
           className="search"
@@ -96,10 +142,19 @@ export default function ModelTable({ models }: { models: Model[] }) {
           <thead>
             <tr>
               <th className="rankcol">#</th>
+              <th
+                className="stickycol"
+                onClick={() => toggle("name")}
+                aria-sort={sortKey === "name" ? (asc ? "ascending" : "descending") : "none"}
+              >
+                Model
+                <span className="sortcaret">{sortKey === "name" ? (asc ? " ↑" : " ↓") : ""}</span>
+              </th>
               {COLUMNS.map((c) => (
                 <th
                   key={c.key}
                   className={c.numeric ? "num" : ""}
+                  title={c.title}
                   onClick={() => toggle(c.key)}
                   aria-sort={sortKey === c.key ? (asc ? "ascending" : "descending") : "none"}
                 >
@@ -113,38 +168,36 @@ export default function ModelTable({ models }: { models: Model[] }) {
             {sorted.map((m, i) => (
               <tr key={m.id}>
                 <td className="rankcol">{i + 1}</td>
-                <td className="model-cell">{m.name}</td>
-                <td>
-                  <span className="chip" style={{ ["--c" as any]: creatorColor(m.creator) }}>
-                    <span className="ledot" style={{ ["--c" as any]: creatorColor(m.creator) }} />
-                    {m.creator}
-                  </span>
-                </td>
-                <td className="num">
-                  {m.intelligence === null ? (
-                    "—"
-                  ) : (
-                    <span className="intel-cell">
-                      <span className="intel-bar">
-                        <span
-                          className="intel-fill"
-                          style={{
-                            width: `${(m.intelligence / maxInt) * 100}%`,
-                            background: creatorColor(m.creator),
-                          }}
-                        />
-                      </span>
-                      <span className="intel-num">{fmtIndex(m.intelligence)}</span>
-                    </span>
-                  )}
-                </td>
-                <td className="num">{fmtSpeed(real(m.speed))}</td>
-                <td className="num">{fmtLatency(real(m.latency))}</td>
-                <td className="num">{fmtPrice(real(m.priceInput))}</td>
-                <td className="num">{fmtPrice(real(m.priceOutput))}</td>
-                <td className="num">{fmtPrice(real(m.priceBlended))}</td>
-                <td className="num">{fmtTokens(m.tokensUsed)}</td>
-                <td className="num">{fmtCost(m.costToRun)}</td>
+                <td className="model-cell stickycol">{m.name}</td>
+                {COLUMNS.map((c) => {
+                  if (c.key === "intelligence") {
+                    return (
+                      <td key={c.key} className="num">
+                        {m.intelligence === null ? (
+                          "—"
+                        ) : (
+                          <span className="intel-cell">
+                            <span className="intel-bar">
+                              <span
+                                className="intel-fill"
+                                style={{
+                                  width: `${(m.intelligence / maxInt) * 100}%`,
+                                  background: creatorColor(m.creator),
+                                }}
+                              />
+                            </span>
+                            <span className="intel-num">{fmtIndex(m.intelligence)}</span>
+                          </span>
+                        )}
+                      </td>
+                    );
+                  }
+                  return (
+                    <td key={c.key} className={c.numeric ? "num" : ""}>
+                      {c.render(m)}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

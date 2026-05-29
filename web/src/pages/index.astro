@@ -36,10 +36,11 @@ import Dashboard from "../components/Dashboard.tsx";
         </div>
         <div class="hero-copy">
           <span class="eyebrow">LLM leaderboard</span>
-          <h1>Only the four numbers that decide a model.</h1>
+          <h1>Every number that decides a model.</h1>
           <p>
-            Intelligence, speed, price and cost-to-run for OpenAI, Google, Anthropic,
-            Kimi, Z&nbsp;AI, MiniMax and Xiaomi — one snapshot, refreshed daily. No noise.
+            Intelligence, benchmarks, speed, price, context and cost-to-run for OpenAI,
+            Google, Anthropic, Kimi, Z&nbsp;AI, MiniMax and Xiaomi — one snapshot,
+            refreshed daily. No noise.
           </p>
         </div>
       </div>
@@ -240,6 +241,20 @@ import Dashboard from "../components/Dashboard.tsx";
       .intel-bar { width: 54px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.07); overflow: hidden; }
       .intel-fill { display: block; height: 100%; border-radius: 3px; }
       .intel-num { min-width: 30px; text-align: right; }
+
+      /* Sticky model-name column so it stays put while scrolling the wide grid. */
+      .stickycol { position: sticky; left: 0; z-index: 2; background: var(--surface); }
+      thead th.stickycol { z-index: 3; }
+      tbody tr:hover .stickycol { background: #17171b; }
+
+      .mods { font-family: var(--mono); letter-spacing: 0.04em; color: var(--muted); }
+      .tags { display: inline-flex; gap: 5px; flex-wrap: wrap; }
+      .tag {
+        font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+        padding: 1px 6px; border-radius: 5px; border: 1px solid var(--border-strong);
+      }
+      .tag.reason { color: var(--accent); border-color: var(--accent-dim); background: var(--accent-dim); }
+      .tag.open { color: #7dd3a8; border-color: rgba(125, 211, 168, 0.25); background: rgba(125, 211, 168, 0.08); }
 
       /* ---------- Tooltip / states ---------- */
       .tooltip {
