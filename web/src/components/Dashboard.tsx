@@ -17,7 +17,11 @@ export default function Dashboard() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`${API_BASE}/api/models`)
+    const ctrl = new AbortController();
+    // Never hang on the skeleton: surface a timeout as an error after 15s.
+    const timer = setTimeout(() => ctrl.abort(), 15000);
+
+    fetch(`${API_BASE}/api/models`, { signal: ctrl.signal })
       .then(async (r) => {
         if (!r.ok) throw new Error((await r.json().catch(() => ({})))?.error ?? `HTTP ${r.status}`);
         return r.json() as Promise<Snapshot>;
@@ -27,10 +31,23 @@ export default function Dashboard() {
         setSnapshot(s);
         setActive(new Set(s.models.map((m) => m.creator)));
       })
-      .catch((e) => !cancelled && setError(String(e.message ?? e)))
-      .finally(() => !cancelled && setLoading(false));
+      .catch((e) => {
+        if (cancelled) return;
+        setError(
+          e?.name === "AbortError"
+            ? `Request to ${API_BASE} timed out — is the Worker running and seeded?`
+            : String(e?.message ?? e),
+        );
+      })
+      .finally(() => {
+        clearTimeout(timer);
+        if (!cancelled) setLoading(false);
+      });
+
     return () => {
       cancelled = true;
+      clearTimeout(timer);
+      ctrl.abort();
     };
   }, []);
 
