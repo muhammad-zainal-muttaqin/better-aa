@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Model } from "../lib/types";
 import { CREATOR_COLORS, fmtPrice, fmtSpeed, fmtLatency, fmtTokens } from "../lib/theme";
 import IntelligencePriceChart from "./IntelligencePriceChart";
@@ -15,10 +15,32 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
   );
   const [active, setActive] = useState<Set<string>>(() => new Set(creators));
 
-  const filtered = useMemo(
-    () => models.filter((m) => active.has(m.creator)),
-    [models, active],
-  );
+  // Release-date window, kept in sync with the table's date filter. The vanilla
+  // script in index.astro owns the controls and broadcasts the range; charts
+  // subscribe so a date selection reshapes the visuals too.
+  const [range, setRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
+  useEffect(() => {
+    function onRange(e: Event) {
+      const d = (e as CustomEvent<{ from: string; to: string }>).detail;
+      if (d) setRange({ from: d.from || "", to: d.to || "" });
+    }
+    window.addEventListener("betteraa:daterange", onRange as EventListener);
+    return () => window.removeEventListener("betteraa:daterange", onRange as EventListener);
+  }, []);
+
+  const filtered = useMemo(() => {
+    const hasRange = range.from || range.to;
+    return models.filter((m) => {
+      if (!active.has(m.creator)) return false;
+      if (hasRange) {
+        const d = (m.releaseDate ?? "").slice(0, 10);
+        if (!d) return false;
+        if (range.from && d < range.from) return false;
+        if (range.to && d > range.to) return false;
+      }
+      return true;
+    });
+  }, [models, active, range]);
 
   function toggleCreator(c: string) {
     setActive((prev) => {

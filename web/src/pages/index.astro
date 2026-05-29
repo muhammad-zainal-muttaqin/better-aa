@@ -173,6 +173,14 @@ const sortData = models.map((m: any) => {
           }
           if (countEl) countEl.textContent = String(rank);
 
+          // Broadcast the active date window so the charts island (the only
+          // hydrated React) can reshape its visuals to match. No-op with JS off.
+          try {
+            window.dispatchEvent(
+              new CustomEvent("betteraa:daterange", { detail: { from: from, to: to } }),
+            );
+          } catch (e) {}
+
           // Update sort carets.
           var ths = card.querySelectorAll("thead th[data-key]");
           for (var j = 0; j < ths.length; j++) {
