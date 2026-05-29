@@ -14,7 +14,7 @@ import {
   fmtContext,
   fmtDate,
   modalityGlyphs,
-  heatBg,
+  heatClass,
 } from "../lib/theme";
 
 type View = "overview" | "bench" | "price";
@@ -53,7 +53,7 @@ const COLUMNS: Col[] = [
     sortVal: (m) => m.creator,
     render: (m) => (
       <span className="chip" style={{ ["--c" as any]: creatorColor(m.creator) }}>
-        <span className="ledot" style={{ ["--c" as any]: creatorColor(m.creator) }} />
+        <span className="ledot" />
         {m.creator}
       </span>
     ),
@@ -256,17 +256,18 @@ export default function ModelTable({ models }: { models: Model[] }) {
                 <td className="rankcol col v-overview v-bench v-price">{i + 1}</td>
                 <td className="model-cell stickycol col v-overview v-bench v-price">{m.name}</td>
                 {COLUMNS.map((c) => {
-                  const cls = `col ${viewClasses(c.views)}${c.numeric ? " num" : ""}`;
-                  // Baked heatmap background — travels with the row when sorted.
-                  let bg: string | undefined;
+                  // Baked heatmap as a shared class (.h0–.h10) instead of a unique
+                  // inline style — travels with the row when the vanilla sorter
+                  // reorders <tr>s, at a fraction of the HTML/recalc cost.
+                  let heat = "";
                   if (c.heat && ranges[c.key]) {
                     const get = c.heatVal ?? ((mm: Model) => c.sortVal(mm) as number | null);
-                    const tint = heatBg(get(m), ranges[c.key].min, ranges[c.key].max, c.heat === "low");
-                    if (tint) bg = tint;
+                    heat = heatClass(get(m), ranges[c.key].min, ranges[c.key].max, c.heat === "low");
                   }
+                  const cls = `col ${viewClasses(c.views)}${c.numeric ? " num" : ""}${heat ? " " + heat : ""}`;
                   if (c.key === "intelligence") {
                     return (
-                      <td key={c.key} className={cls} style={bg ? { background: bg } : undefined}>
+                      <td key={c.key} className={cls}>
                         {m.intelligence === null ? (
                           "—"
                         ) : (
@@ -287,7 +288,7 @@ export default function ModelTable({ models }: { models: Model[] }) {
                     );
                   }
                   return (
-                    <td key={c.key} className={cls} style={bg ? { background: bg } : undefined}>
+                    <td key={c.key} className={cls}>
                       {c.render(m)}
                     </td>
                   );

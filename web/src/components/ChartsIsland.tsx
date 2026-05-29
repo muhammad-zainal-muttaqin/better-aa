@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Model } from "../lib/types";
-import { CREATOR_COLORS, fmtPrice, fmtSpeed, fmtLatency, fmtTokens } from "../lib/theme";
+import { creatorColor, fmtPrice, fmtSpeed, fmtLatency, fmtTokens } from "../lib/theme";
 import IntelligencePriceChart from "./IntelligencePriceChart";
 import RankedBarChart from "./RankedBarChart";
 
@@ -9,10 +9,15 @@ import RankedBarChart from "./RankedBarChart";
 // (non-critical) Recharts visuals + their creator legend, fed by build-time
 // props — no fetch. If it ever fails to hydrate, the data below is unaffected.
 export default function ChartsIsland({ models }: { models: Model[] }) {
-  const creators = useMemo(
-    () => [...new Set(models.map((m) => m.creator))].sort(),
-    [models],
-  );
+  // Order the legend by how many models each lab has (biggest first) so the
+  // recognizable creators lead — with the full catalog this is ~50 entries.
+  const creators = useMemo(() => {
+    const count = new Map<string, number>();
+    for (const m of models) count.set(m.creator, (count.get(m.creator) ?? 0) + 1);
+    return [...count.keys()].sort(
+      (a, b) => (count.get(b)! - count.get(a)!) || a.localeCompare(b),
+    );
+  }, [models]);
   const [active, setActive] = useState<Set<string>>(() => new Set(creators));
 
   // Release-date window, kept in sync with the table's date filter. The vanilla
@@ -58,11 +63,11 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
             <button
               key={c}
               className={`chip toggle ${active.has(c) ? "on" : "off"}`}
-              style={{ ["--c" as any]: CREATOR_COLORS[c] ?? "#8a8a93" }}
+              style={{ ["--c" as any]: creatorColor(c) }}
               onClick={() => toggleCreator(c)}
               aria-pressed={active.has(c)}
             >
-              <span className="ledot" style={{ ["--c" as any]: CREATOR_COLORS[c] ?? "#8a8a93" }} />
+              <span className="ledot" />
               {c}
             </button>
           ))}

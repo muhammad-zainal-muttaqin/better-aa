@@ -2,7 +2,7 @@
 import StatStrip from "../components/StatStrip.tsx";
 import ModelTable from "../components/ModelTable.tsx";
 import App from "../components/App.tsx";
-import { CREATOR_COLORS } from "../lib/theme";
+import { creatorColor } from "../lib/theme";
 import { loadSiteData } from "../lib/data";
 
 // SSR per request: pull the freshest catalog from the bound KV namespace (daily
@@ -34,6 +34,13 @@ const sortData = models.map((m: any) => {
   }
   return o;
 });
+
+// Every creator's resolved color (curated anchors + hashed long tail), so the
+// vanilla KPI recompute below tints with the exact same hue the table/charts use.
+const creatorColorMap: Record<string, string> = {};
+for (const m of models as any[]) {
+  if (!(m.creator in creatorColorMap)) creatorColorMap[m.creator] = creatorColor(m.creator);
+}
 ---
 
 <!doctype html>
@@ -72,9 +79,9 @@ const sortData = models.map((m: any) => {
           <span class="eyebrow">LLM leaderboard</span>
           <h1>Every number that decides a model.</h1>
           <p>
-            Intelligence, benchmarks, speed, price, context and cost-to-run for OpenAI,
-            Google, Anthropic, Kimi, Z&nbsp;AI, MiniMax and Xiaomi — one snapshot,
-            refreshed daily. No noise.
+            Intelligence, benchmarks, speed, price, context and cost-to-run for every
+            model on the board — OpenAI, Google, Anthropic, Meta, Mistral, DeepSeek,
+            Alibaba and 40+ more labs. One snapshot, refreshed daily. No noise.
           </p>
         </div>
       </div>
@@ -102,7 +109,7 @@ const sortData = models.map((m: any) => {
       <script
         type="application/json"
         id="creatorcolors"
-        set:html={JSON.stringify(CREATOR_COLORS)}
+        set:html={JSON.stringify(creatorColorMap)}
       />
     </main>
 
@@ -468,7 +475,16 @@ const sortData = models.map((m: any) => {
         display: flex; flex-wrap: wrap; gap: 14px; align-items: center;
         justify-content: space-between; margin: 4px 0 16px;
       }
-      .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+      /* With the full catalog this holds ~50 creator toggles, so it scrolls past
+         a few rows instead of shoving the charts down the page. */
+      .legend {
+        display: flex; flex-wrap: wrap; gap: 7px;
+        max-height: 104px; overflow-y: auto; padding-right: 4px; width: 100%;
+        scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent;
+      }
+      .legend::-webkit-scrollbar { height: 7px; width: 7px; }
+      .legend::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+      .legend .chip.toggle { font-size: 12px; padding: 5px 10px; }
       .updated-line { color: var(--faint); font-size: 12px; font-family: var(--mono); margin: 0 0 16px; }
       .updated { color: var(--faint); font-size: 12px; font-family: var(--mono); display: flex; align-items: center; gap: 10px; }
       .cached-badge {
@@ -601,6 +617,26 @@ const sortData = models.map((m: any) => {
       }
       tbody tr { transition: background 0.12s var(--ease); }
       tbody tr:hover td { background-color: rgba(255, 255, 255, 0.03); }
+
+      /* Off-screen row paint-skipping: with ~500 rows this lets the browser skip
+         layout/paint for rows outside the viewport (the placeholder height keeps
+         the scrollbar honest). Pure CSS, ignored by older engines — HTML-first
+         intact. The big lever behind "lightweight even with 500 models". */
+      tbody tr { content-visibility: auto; contain-intrinsic-size: auto 44px; }
+
+      /* Baked heatmap ramp — shared classes replace ~8k unique inline styles.
+         Alpha steps mirror heatBg() (0.04 floor → 0.26 ceiling). */
+      td.h0 { background: rgba(45, 212, 191, 0.040); }
+      td.h1 { background: rgba(45, 212, 191, 0.062); }
+      td.h2 { background: rgba(45, 212, 191, 0.084); }
+      td.h3 { background: rgba(45, 212, 191, 0.106); }
+      td.h4 { background: rgba(45, 212, 191, 0.128); }
+      td.h5 { background: rgba(45, 212, 191, 0.150); }
+      td.h6 { background: rgba(45, 212, 191, 0.172); }
+      td.h7 { background: rgba(45, 212, 191, 0.194); }
+      td.h8 { background: rgba(45, 212, 191, 0.216); }
+      td.h9 { background: rgba(45, 212, 191, 0.238); }
+      td.h10 { background: rgba(45, 212, 191, 0.260); }
       .num { text-align: right; font-family: var(--mono); }
       thead th.num { text-align: right; }
       .rankcol { width: 36px; color: var(--faint); font-family: var(--mono); font-size: 12px; text-align: right; }

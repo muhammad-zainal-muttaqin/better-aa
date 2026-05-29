@@ -160,6 +160,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
               data={data.filter((d) => !frontIds.has(d.id))}
               fill={creatorColor(creator)}
               fillOpacity={0.5}
+              isAnimationActive={false}
             />
           ))}
 
@@ -170,6 +171,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
             line={{ stroke: "url(#frontierStroke)", strokeWidth: 1.5 }}
             lineType="joint"
             shape="circle"
+            isAnimationActive={false}
           >
             {front.map((p) => (
               <Cell

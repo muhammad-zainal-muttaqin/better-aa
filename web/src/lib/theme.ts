@@ -2,22 +2,47 @@
 // number formatters and data-hygiene helpers used across the dashboard.
 
 // Keyed by the creator NAME returned by the AA API (verified against live data).
-// Categorical data-encoding hues — calibrated for a dark surface, kept distinct
-// across all seven creators without tipping into rainbow noise.
+// Categorical data-encoding hues — calibrated for a dark surface and spread
+// around the wheel so the recognizable labs stay distinct. The full catalog has
+// ~50 creators; these are the anchors, the rest get a stable hashed hue below.
 export const CREATOR_COLORS: Record<string, string> = {
   Anthropic: "#d97757", // clay
-  OpenAI: "#10a37f", // emerald
-  Google: "#4d8bf0", // azure
-  Kimi: "#8b7cf6", // iris
-  "Z AI": "#22b8cf", // cyan  (GLM)
-  MiniMax: "#f0577f", // rose
+  Mistral: "#fb5e3c", // red-orange
   Xiaomi: "#f3a23b", // amber (MiMo)
+  Amazon: "#e9c046", // gold (Nova)
+  NVIDIA: "#84c019", // lime (brand green)
+  OpenAI: "#10a37f", // emerald
+  "Z AI": "#22b8cf", // cyan  (GLM)
+  Meta: "#1c8ef5", // sky (Llama)
+  Google: "#4d8bf0", // azure
+  DeepSeek: "#6d6af5", // indigo
+  Kimi: "#8b7cf6", // iris
+  Alibaba: "#a86cf0", // violet (Qwen)
+  Microsoft: "#c45cf0", // purple (Phi)
+  Cohere: "#de4fd0", // magenta
+  MiniMax: "#f0577f", // rose
+  xAI: "#e5e9f0", // silver (brand monochrome — Grok)
 };
 
-const FALLBACK_COLOR = "#9aa0aa";
+// Stable per-creator fallback for the long tail of labs (Liquid AI, IBM, Reka,
+// …). FNV-1a hash → a hue, with saturation/lightness pinned to a band that reads
+// on the dark surface. Deterministic, so a lab keeps its color across renders and
+// new labs in the catalog get one automatically — no gray "unknown" bucket.
+function hashColor(name: string): string {
+  let h = 2166136261;
+  for (let i = 0; i < name.length; i++) {
+    h ^= name.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  h = h >>> 0;
+  const hue = h % 360;
+  const sat = 52 + (h % 20); // 52–71%
+  const light = 60 + ((h >> 10) % 12); // 60–71%
+  return `hsl(${hue}deg ${sat}% ${light}%)`;
+}
 
 export function creatorColor(creator: string): string {
-  return CREATOR_COLORS[creator] ?? FALLBACK_COLOR;
+  return CREATOR_COLORS[creator] ?? hashColor(creator);
 }
 
 // The AA snapshot stores "missing" as 0 for price and latency. Treat any
@@ -112,6 +137,25 @@ export function heatBg(
   // 0.04 floor keeps low cells faintly visible; 0.26 ceiling stays readable.
   const alpha = (0.04 + 0.22 * t).toFixed(3);
   return `rgba(45, 212, 191, ${alpha})`;
+}
+
+// Class-based variant of the heatmap — returns "h0".."h10" (or "" for missing /
+// flat columns). Lets each cell carry a tiny shared class instead of a unique
+// inline `background`, so a 500-row × 15-metric grid ships ~8k fewer style
+// attributes (smaller HTML, far cheaper style recalc). The .h0–.h10 ramp is
+// defined once in index.astro and mirrors the heatBg alpha steps.
+export function heatClass(
+  value: number | null,
+  min: number,
+  max: number,
+  lowerBetter = false,
+): string {
+  if (value === null || !Number.isFinite(value)) return "";
+  if (max <= min) return "";
+  let t = (value - min) / (max - min);
+  if (lowerBetter) t = 1 - t;
+  t = Math.max(0, Math.min(1, t));
+  return "h" + Math.round(t * 10);
 }
 
 // Compact modality glyphs for a capabilities cell.
