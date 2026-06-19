@@ -125,6 +125,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
             tickLine={false}
             axisLine={false}
             width={40}
+            padding={{ top: 24 }}
             label={{
               value: "Intelligence Index",
               angle: -90,
