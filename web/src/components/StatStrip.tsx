@@ -42,6 +42,8 @@ export default function StatStrip({ models }: { models: Model[] }) {
     { label: "Lowest latency", model: snappiest, value: fmtLatency(snappiest?.latency ?? null), metric: "latency", mode: "min", fmt: "latency" },
   ];
 
+  const rank = (i: number) => String(i + 1).padStart(2, "0");
+
   return (
     <section className="kpi-strip" aria-label="Highlights">
       {stats.map((s, i) => (
@@ -55,7 +57,10 @@ export default function StatStrip({ models }: { models: Model[] }) {
               ["--c" as any]: s.model ? creatorColor(s.model.creator) : "var(--accent)",
             }}
           >
-            <span className="kpi-label">{s.label}</span>
+            <div className="kpi-top">
+              <span className="kpi-label">{s.label}</span>
+              <span className="kpi-rank">0{rank(i).slice(-1)} / 04</span>
+            </div>
             <span className="kpi-value">{s.value}</span>
             {s.model && (
               <span className="kpi-model">

@@ -85,9 +85,9 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
         <ScatterChart margin={{ top: 32, right: 32, bottom: 36, left: 8 }}>
           <defs>
             <linearGradient id="frontierStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#2dd4bf" stopOpacity={1} />
-              <stop offset="60%" stopColor="#2dd4bf" stopOpacity={0.5} />
-              <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.3} />
+              <stop offset="0%" stopColor="#36d8c2" stopOpacity={1} />
+              <stop offset="60%" stopColor="#36d8c2" stopOpacity={0.5} />
+              <stop offset="100%" stopColor="#7c5cff" stopOpacity={0.3} />
             </linearGradient>
             <filter id="dotGlow">
               <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
@@ -104,14 +104,14 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
             name="Price"
             scale="log"
             domain={["auto", "auto"]}
-            tick={{ fill: "#7a7a84", fontSize: 11 }}
+            tick={{ fill: "#8a8c94", fontSize: 11 }}
             tickFormatter={(v) => fmtPrice(v)}
             tickLine={false}
             axisLine={{ stroke: "rgba(255,255,255,0.07)" }}
             label={{
               value: "Blended price  ·  $/1M tokens (log)",
               position: "bottom",
-              fill: "#5c5c64",
+              fill: "#5b5666",
               fontSize: 11,
               offset: 10,
             }}
@@ -121,7 +121,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
             dataKey="y"
             name="Intelligence"
             domain={["auto", "auto"]}
-            tick={{ fill: "#7a7a84", fontSize: 11 }}
+            tick={{ fill: "#8a8c94", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
             width={40}
@@ -130,7 +130,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
               value: "Intelligence Index",
               angle: -90,
               position: "insideLeft",
-              fill: "#5c5c64",
+              fill: "#5b5666",
               fontSize: 11,
               style: { textAnchor: "middle" },
             }}
@@ -187,7 +187,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
               <Cell
                 key={p.id}
                 fill={creatorColor(p.creator)}
-                stroke="#0b0b0d"
+                stroke="#06070a"
                 strokeWidth={2}
                 filter="url(#dotGlow)"
               />
@@ -203,10 +203,10 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
                   <text
                     x={x}
                     y={y - 12}
-                    fill="#d7d7dc"
+                    fill="#d7d8de"
                     fontSize={10.5}
                     textAnchor="middle"
-                    style={{ fontWeight: 500, paintOrder: "stroke", stroke: "#0b0b0d", strokeWidth: 4 }}
+                    style={{ fontWeight: 500, paintOrder: "stroke", stroke: "#06070a", strokeWidth: 4 }}
                   >
                     {shortName(String(value))}
                   </text>

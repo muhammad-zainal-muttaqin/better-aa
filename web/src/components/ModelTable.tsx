@@ -170,10 +170,13 @@ export default function ModelTable({ models }: { models: Model[] }) {
     <div className="card table-card" id="model-table">
       <div className="card-head table-head">
         <div className="table-title">
-          <h2>All models</h2>
+          <h2>
+            <span className="live-dot" aria-hidden="true" />
+            All models
+          </h2>
           <p className="sub">
-            <span className="rowcount">{visible.length}</span> models · click a column to
-            sort · <span className="heat-legend">cells shaded by rank — brighter is better</span>
+            <span className="rowcount">{visible.length}</span> models · click a column to sort ·
+            <span className="heat-legend"> cells shaded by rank — brighter is better</span>
           </p>
         </div>
         <div className="table-controls">
