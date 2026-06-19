@@ -82,7 +82,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
         </p>
       </div>
       <ResponsiveContainer width="100%" height={520}>
-        <ScatterChart margin={{ top: 20, right: 32, bottom: 36, left: 8 }}>
+        <ScatterChart margin={{ top: 32, right: 32, bottom: 36, left: 8 }}>
           <defs>
             <linearGradient id="frontierStroke" x1="0" y1="0" x2="1" y2="0">
               <stop offset="0%" stopColor="#2dd4bf" stopOpacity={1} />
