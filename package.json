@@ -2,6 +2,6 @@
   "name": "better-aa",
   "private": true,
   "scripts": {
-    "build": "cd web && npm install && npm run build"
+    "build": "cd web && npm install && npm run build && cp -r dist ../dist"
   }
 }
