@@ -67,25 +67,25 @@ export default function RankedBarChart({
         <h2>{title}</h2>
         <p className="sub">{subtitle}</p>
       </div>
-      <ResponsiveContainer width="100%" height={Math.max(210, data.length * 32)}>
+      <ResponsiveContainer width="100%" height={Math.max(220, data.length * 34)}>
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 2, right: 54, bottom: 2, left: 4 }}
-          barCategoryGap="22%"
+          margin={{ top: 4, right: 58, bottom: 4, left: 4 }}
+          barCategoryGap="20%"
         >
-          <XAxis type="number" domain={[0, maxV * 1.08]} hide />
+          <XAxis type="number" domain={[0, maxV * 1.1]} hide />
           <YAxis
             type="category"
             dataKey="label"
             width={148}
-            tick={{ fill: "#c9c9d0", fontSize: 11.5 }}
+            tick={{ fill: "#c9c9d0", fontSize: 12 }}
             tickLine={false}
             axisLine={false}
             interval={0}
           />
           <Tooltip
-            cursor={{ fill: "rgba(255,255,255,0.035)" }}
+            cursor={{ fill: "rgba(45, 212, 191, 0.03)" }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
               const m = payload[0].payload as Model & { _v: number };
@@ -104,20 +104,39 @@ export default function RankedBarChart({
               );
             }}
           />
-          <Bar dataKey="_v" radius={[0, 5, 5, 0]} isAnimationActive={false} maxBarSize={20}>
-            {data.map((m) => (
-              <Cell key={m.id} fill={creatorColor(m.creator)} fillOpacity={0.85} />
+          <Bar
+            dataKey="_v"
+            radius={[0, 8, 8, 0]}
+            isAnimationActive={true}
+            animationDuration={900}
+            animationEasing="ease-out"
+            maxBarSize={24}
+          >
+            {data.map((m, idx) => (
+              <Cell
+                key={m.id}
+                fill={`url(#barGrad-${idx})`}
+                fillOpacity={0.9}
+              />
             ))}
             <LabelList
               dataKey="_v"
               position="right"
-              offset={8}
+              offset={10}
               formatter={(v: number) => format(v)}
               fill="#9aa0aa"
-              fontSize={11}
+              fontSize={11.5}
               style={{ fontFamily: "var(--mono)" }}
             />
           </Bar>
+          <defs>
+            {data.map((m, idx) => (
+              <linearGradient key={idx} id={`barGrad-${idx}`} x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor={creatorColor(m.creator)} stopOpacity={0.95} />
+                <stop offset="100%" stopColor={creatorColor(m.creator)} stopOpacity={0.55} />
+              </linearGradient>
+            ))}
+          </defs>
         </BarChart>
       </ResponsiveContainer>
     </div>

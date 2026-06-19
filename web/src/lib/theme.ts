@@ -134,8 +134,8 @@ export function heatBg(
   let t = (value - min) / (max - min); // 0 = worst raw, 1 = best raw
   if (lowerBetter) t = 1 - t;
   t = Math.max(0, Math.min(1, t));
-  // 0.04 floor keeps low cells faintly visible; 0.26 ceiling stays readable.
-  const alpha = (0.04 + 0.22 * t).toFixed(3);
+  // Increased range: 0.05 floor → 0.32 ceiling for stronger visual signal.
+  const alpha = (0.05 + 0.27 * t).toFixed(3);
   return `rgba(45, 212, 191, ${alpha})`;
 }
 

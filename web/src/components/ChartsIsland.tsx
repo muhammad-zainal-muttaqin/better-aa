@@ -74,12 +74,12 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
         </div>
       </div>
 
-      <div className="hero-chart" style={{ ["--i" as any]: 0 }}>
+      <div className="card-outer hero-chart" style={{ ["--i" as any]: 0 }}>
         <IntelligencePriceChart models={filtered} />
       </div>
 
       <div className="bento">
-        <div style={{ ["--i" as any]: 1 }}>
+        <div className="card-outer" style={{ ["--i" as any]: 1 }}>
           <RankedBarChart
             title="Speed"
             subtitle="Output tokens per second — higher is faster."
@@ -88,7 +88,7 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
             format={fmtSpeed}
           />
         </div>
-        <div style={{ ["--i" as any]: 2 }}>
+        <div className="card-outer" style={{ ["--i" as any]: 2 }}>
           <RankedBarChart
             title="Price"
             subtitle="Blended $/1M tokens (3:1) — lower is cheaper."
@@ -98,7 +98,7 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
             ascending
           />
         </div>
-        <div style={{ ["--i" as any]: 3 }}>
+        <div className="card-outer" style={{ ["--i" as any]: 3 }}>
           <RankedBarChart
             title="Latency"
             subtitle="Time to first token (s) — lower is snappier."
@@ -108,7 +108,7 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
             ascending
           />
         </div>
-        <div style={{ ["--i" as any]: 4 }}>
+        <div className="card-outer" style={{ ["--i" as any]: 4 }}>
           <RankedBarChart
             title="Tokens used"
             subtitle="Output tokens to run the Intelligence Index."

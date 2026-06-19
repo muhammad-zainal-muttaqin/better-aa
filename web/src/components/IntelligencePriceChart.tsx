@@ -81,30 +81,39 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
           frontier — models nothing else beats on both smarts and cost.
         </p>
       </div>
-      <ResponsiveContainer width="100%" height={420}>
-        <ScatterChart margin={{ top: 16, right: 28, bottom: 30, left: 6 }}>
+      <ResponsiveContainer width="100%" height={520}>
+        <ScatterChart margin={{ top: 20, right: 32, bottom: 36, left: 8 }}>
           <defs>
             <linearGradient id="frontierStroke" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#2dd4bf" stopOpacity={0.9} />
-              <stop offset="100%" stopColor="#2dd4bf" stopOpacity={0.25} />
+              <stop offset="0%" stopColor="#2dd4bf" stopOpacity={1} />
+              <stop offset="60%" stopColor="#2dd4bf" stopOpacity={0.5} />
+              <stop offset="100%" stopColor="#8b5cf6" stopOpacity={0.3} />
             </linearGradient>
+            <filter id="dotGlow">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
           </defs>
-          <CartesianGrid stroke="rgba(255,255,255,0.05)" strokeDasharray="2 4" />
+          <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="4 8" />
           <XAxis
             type="number"
             dataKey="x"
             name="Price"
             scale="log"
             domain={["auto", "auto"]}
-            tick={{ fill: "#8a8a93", fontSize: 11 }}
+            tick={{ fill: "#7a7a84", fontSize: 11 }}
             tickFormatter={(v) => fmtPrice(v)}
             tickLine={false}
-            axisLine={{ stroke: "rgba(255,255,255,0.1)" }}
+            axisLine={{ stroke: "rgba(255,255,255,0.07)" }}
             label={{
               value: "Blended price  ·  $/1M tokens (log)",
               position: "bottom",
               fill: "#5c5c64",
               fontSize: 11,
+              offset: 10,
             }}
           />
           <YAxis
@@ -112,10 +121,10 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
             dataKey="y"
             name="Intelligence"
             domain={["auto", "auto"]}
-            tick={{ fill: "#8a8a93", fontSize: 11 }}
+            tick={{ fill: "#7a7a84", fontSize: 11 }}
             tickLine={false}
             axisLine={false}
-            width={36}
+            width={40}
             label={{
               value: "Intelligence Index",
               angle: -90,
@@ -125,9 +134,9 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
               style: { textAnchor: "middle" },
             }}
           />
-          <ZAxis range={[42, 42]} />
+          <ZAxis range={[38, 80]} />
           <Tooltip
-            cursor={{ strokeDasharray: "3 3", stroke: "rgba(255,255,255,0.18)" }}
+            cursor={{ strokeDasharray: "4 6", stroke: "rgba(255,255,255,0.12)" }}
             content={({ active, payload }) => {
               if (!active || !payload?.length) return null;
               const m = payload[0].payload as Pt;
@@ -159,7 +168,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
               name={creator}
               data={data.filter((d) => !frontIds.has(d.id))}
               fill={creatorColor(creator)}
-              fillOpacity={0.5}
+              fillOpacity={0.45}
               isAnimationActive={false}
             />
           ))}
@@ -168,7 +177,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
           <Scatter
             name="Efficiency frontier"
             data={front}
-            line={{ stroke: "url(#frontierStroke)", strokeWidth: 1.5 }}
+            line={{ stroke: "url(#frontierStroke)", strokeWidth: 2.5 }}
             lineType="joint"
             shape="circle"
             isAnimationActive={false}
@@ -178,24 +187,25 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
                 key={p.id}
                 fill={creatorColor(p.creator)}
                 stroke="#0b0b0d"
-                strokeWidth={1.5}
+                strokeWidth={2}
+                filter="url(#dotGlow)"
               />
             ))}
             <LabelList
               dataKey="name"
               position="top"
-              offset={9}
+              offset={12}
               content={(props: any) => {
                 const { x, y, value } = props;
                 if (x == null || y == null) return null;
                 return (
                   <text
                     x={x}
-                    y={y - 9}
+                    y={y - 12}
                     fill="#d7d7dc"
                     fontSize={10.5}
                     textAnchor="middle"
-                    style={{ fontWeight: 500, paintOrder: "stroke", stroke: "#0b0b0d", strokeWidth: 3 }}
+                    style={{ fontWeight: 500, paintOrder: "stroke", stroke: "#0b0b0d", strokeWidth: 4 }}
                   >
                     {shortName(String(value))}
                   </text>

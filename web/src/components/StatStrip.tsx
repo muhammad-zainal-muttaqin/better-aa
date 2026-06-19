@@ -45,26 +45,26 @@ export default function StatStrip({ models }: { models: Model[] }) {
   return (
     <section className="kpi-strip" aria-label="Highlights">
       {stats.map((s, i) => (
-        <article
-          className="kpi"
-          key={s.label}
-          data-metric={s.metric}
-          data-mode={s.mode}
-          data-fmt={s.fmt}
-          style={{
-            ["--i" as any]: i,
-            ["--c" as any]: s.model ? creatorColor(s.model.creator) : "var(--accent)",
-          }}
-        >
-          <span className="kpi-label">{s.label}</span>
-          <span className="kpi-value">{s.value}</span>
-          {s.model && (
-            <span className="kpi-model">
-              <span className="ledot" style={{ ["--c" as any]: creatorColor(s.model.creator) }} />
-              {s.model.name}
-            </span>
-          )}
-        </article>
+        <div className="kpi-outer" key={s.label} style={{ ["--i" as any]: i }}>
+          <article
+            className="kpi"
+            data-metric={s.metric}
+            data-mode={s.mode}
+            data-fmt={s.fmt}
+            style={{
+              ["--c" as any]: s.model ? creatorColor(s.model.creator) : "var(--accent)",
+            }}
+          >
+            <span className="kpi-label">{s.label}</span>
+            <span className="kpi-value">{s.value}</span>
+            {s.model && (
+              <span className="kpi-model">
+                <span className="ledot" style={{ ["--c" as any]: creatorColor(s.model.creator) }} />
+                {s.model.name}
+              </span>
+            )}
+          </article>
+        </div>
       ))}
     </section>
   );
