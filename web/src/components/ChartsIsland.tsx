@@ -33,6 +33,20 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
     return () => window.removeEventListener("betteraa:daterange", onRange as EventListener);
   }, []);
 
+  // Broadcast the active provider set so the framework-free recompute in
+  // index.astro can scope the "Leaders right now" KPI tiles and the table to the
+  // selected providers, keeping the whole board coherent with the legend. Those
+  // surfaces are static SSR HTML, so this avoids hydrating them.
+  useEffect(() => {
+    try {
+      window.dispatchEvent(
+        new CustomEvent("betteraa:providers", {
+          detail: { active: [...active], all: active.size === creators.length },
+        }),
+      );
+    } catch {}
+  }, [active, creators.length]);
+
   const filtered = useMemo(() => {
     const hasRange = range.from || range.to;
     return models.filter((m) => {

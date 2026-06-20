@@ -7,7 +7,7 @@ import { loadSiteData } from "../lib/data";
 
 // SSR per request: pull the freshest catalog from the bound KV namespace (daily
 // cron keeps it current), falling back to the baked snapshot when KV is absent.
-// HTML-first is preserved — StatStrip + ModelTable still render to static HTML
+// HTML-first is preserved: StatStrip + ModelTable still render to static HTML
 // here, so the data shows with JS disabled / extensions / translate.
 export const prerender = false;
 const kv = (Astro.locals as any)?.runtime?.env?.SNAPSHOT_KV;
@@ -20,7 +20,7 @@ const updated = new Date(generatedAt).toLocaleDateString("en-US", {
 const cached = origin === "snapshot";
 
 // Compact per-row values so a tiny vanilla script can sort/filter the static
-// table — no React needed for interactivity.
+// table; no React needed for interactivity.
 const SORT_KEYS = [
   "name", "creator", "intelligence", "gpqa", "livecodebench", "aime", "mmluPro",
   "hle", "contextWindow", "inputModalities", "reasoning", "speed", "latency",
@@ -109,7 +109,7 @@ for (const m of models as any[]) {
           </h1>
           <p>
             Intelligence, benchmarks, speed, price, context and cost-to-run for every
-            model on the board — OpenAI, Google, Anthropic, Meta, Mistral, DeepSeek,
+            model on the board: OpenAI, Google, Anthropic, Meta, Mistral, DeepSeek,
             Alibaba and 40+ more labs. One snapshot, refreshed daily. No noise.
           </p>
         </div>
@@ -161,6 +161,11 @@ for (const m of models as any[]) {
         if (ccEl) { try { creatorColors = JSON.parse(ccEl.textContent || "{}"); } catch (e) {} }
         function colorFor(c) { return creatorColors[c] || "#9aa0aa"; }
 
+        // Active provider set, broadcast by the charts island's legend. null =>
+        // all providers (no filter). Scopes the KPI tiles + table to the same
+        // providers the user toggled on, so the whole board stays coherent.
+        var activeProviders = null;
+
         // Vanilla mirrors of theme.ts formatters, used to recompute the KPI tiles
         // from the active date window (the SSR render covers JS-off).
         function fmtKpi(kind, v) {
@@ -185,13 +190,16 @@ for (const m of models as any[]) {
           // same set the charts use). No window => all models.
           var pool = rows;
           if (from || to) {
-            pool = rows.filter(function (r) {
+            pool = pool.filter(function (r) {
               var d = (r.releaseDate || "").slice(0, 10);
               if (!d) return false;
               if (from && d < from) return false;
               if (to && d > to) return false;
               return true;
             });
+          }
+          if (activeProviders) {
+            pool = pool.filter(function (r) { return activeProviders[r.creator]; });
           }
           for (var c = 0; c < kpiCards.length; c++) {
             var card = kpiCards[c];
@@ -216,7 +224,11 @@ for (const m of models as any[]) {
                 dot.className = "ledot";
                 dot.style.setProperty("--c", col);
                 modelEl.appendChild(dot);
-                modelEl.appendChild(document.createTextNode(best.name));
+                var nameEl = document.createElement("span");
+                nameEl.className = "kpi-model-name";
+                nameEl.title = best.name;
+                nameEl.textContent = best.name;
+                modelEl.appendChild(nameEl);
                 modelEl.style.display = "";
               }
             } else if (modelEl) {
@@ -264,7 +276,8 @@ for (const m of models as any[]) {
             var tr = trs[i];
             tbody.appendChild(tr); // reorder
             var name = (tr.getAttribute("data-name") || "").toLowerCase();
-            var creator = (tr.getAttribute("data-creator") || "").toLowerCase();
+            var creatorRaw = tr.getAttribute("data-creator") || "";
+            var creator = creatorRaw.toLowerCase();
             var matchQ = !q || name.indexOf(q) !== -1 || creator.indexOf(q) !== -1;
             // Release-date range (ISO YYYY-MM-DD sorts lexicographically). When a
             // bound is set, undated models drop out so the window is honest.
@@ -275,7 +288,9 @@ for (const m of models as any[]) {
               else if (from && rel < from) inRange = false;
               else if (to && rel > to) inRange = false;
             }
-            var show = matchQ && inRange;
+            // Provider toggle (charts legend) scopes the table too.
+            var inProviders = !activeProviders || !!activeProviders[creatorRaw];
+            var show = matchQ && inRange && inProviders;
             tr.style.display = show ? "" : "none";
             if (show) {
               rank++;
@@ -352,9 +367,23 @@ for (const m of models as any[]) {
           })(chips[c]);
         }
 
+        // Provider legend (charts island) scopes the table + KPI tiles too, so
+        // selecting/clearing providers reshapes the whole board, not just charts.
+        window.addEventListener("betteraa:providers", function (e) {
+          var d = e && e.detail;
+          if (!d) return;
+          if (d.all || !d.active) {
+            activeProviders = null;
+          } else {
+            activeProviders = {};
+            for (var i = 0; i < d.active.length; i++) activeProviders[d.active[i]] = true;
+          }
+          apply();
+        });
+
         // Preset view tabs: swap the table's `view-*` class so CSS reveals only
         // that view's columns. Default view is baked server-side (Overview), so
-        // this is pure enhancement — it never has to run for data to be visible.
+        // this is pure enhancement; it never has to run for data to be visible.
         var tabs = card.querySelectorAll(".tabbar .tab");
         for (var t = 0; t < tabs.length; t++) {
           (function (tab) {
@@ -469,7 +498,7 @@ for (const m of models as any[]) {
       }
       a { color: inherit; }
 
-      /* Custom scrollbar — thin glass effect */
+      /* Custom scrollbar: thin glass effect */
       ::-webkit-scrollbar { width: 9px; height: 9px; }
       ::-webkit-scrollbar-track { background: transparent; }
       ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.09); border-radius: 99px; border: 2px solid transparent; background-clip: padding-box; }
@@ -482,7 +511,7 @@ for (const m of models as any[]) {
         mix-blend-mode: overlay;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       }
-      /* Ambient glow orbs — two drifting radial gradients for depth. Purple is
+      /* Ambient glow orbs: two drifting radial gradients for depth. Purple is
          demoted to ambient only; the UI carries a single teal accent. */
       .glow {
         position: fixed; top: -420px; right: -260px; width: 920px; height: 820px;
@@ -506,7 +535,7 @@ for (const m of models as any[]) {
         from { transform: translate(0, 0) scale(1); }
         to { transform: translate(60px, -40px) scale(1.06); }
       }
-      /* Faint engineering grid behind everything — reads as a blueprint, fixed so
+      /* Faint engineering grid behind everything; reads as a blueprint, fixed so
          it never repaints on scroll. */
       .grid-lines {
         position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.5;
@@ -623,7 +652,7 @@ for (const m of models as any[]) {
 
       main { padding: 44px 0 48px; }
 
-      /* ---------- KPI strip — Double-Bezel ---------- */
+      /* ---------- KPI strip: Double-Bezel ---------- */
       .strip-head { margin: 6px 0 16px; }
       .strip-head h2 { margin: 0; font-size: 15.5px; font-weight: 600; letter-spacing: -0.022em; text-wrap: balance; }
       .strip-head .sub { margin: 6px 0 0; color: var(--muted); font-size: 12.5px; }
@@ -642,7 +671,7 @@ for (const m of models as any[]) {
       .kpi-outer:hover { transform: translateY(-6px); box-shadow: var(--card-hover-glow), 0 22px 56px -16px rgba(0,0,0,0.7), 0 0 0 1px var(--accent-dim); }
       .kpi-outer:hover::before { opacity: 1; }
       .kpi {
-        position: relative; padding: 24px; border-radius: 20px;
+        position: relative; padding: 24px; border-radius: 20px; height: 100%;
         background: var(--card-bg);
         border: 1px solid var(--card-border);
         box-shadow: var(--card-inner), inset 0 0 0 1px rgba(0, 0, 0, 0.4);
@@ -669,7 +698,8 @@ for (const m of models as any[]) {
         line-height: 1; position: relative; color: var(--text);
         text-shadow: 0 0 56px color-mix(in srgb, var(--c, var(--accent)) 18%, transparent);
       }
-      .kpi-model { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); position: relative; }
+      .kpi-model { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); position: relative; min-width: 0; }
+      .kpi-model-name { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
       .ledot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, #8a8a93); flex: none; box-shadow: 0 0 8px color-mix(in srgb, var(--c, #8a8a93) 42%, transparent); }
 
       /* ---------- Toolbar / legend ---------- */
@@ -718,7 +748,7 @@ for (const m of models as any[]) {
       .chip.toggle:active { transform: scale(0.96); }
       .chip:not(.toggle) .ledot { width: 7px; height: 7px; }
 
-      /* ---------- Cards — Double-Bezel Architecture ---------- */
+      /* ---------- Cards: Double-Bezel Architecture ---------- */
       .card-outer {
         padding: 2px; border-radius: var(--radius-lg); position: relative;
         background: var(--card-bezel);
@@ -748,7 +778,7 @@ for (const m of models as any[]) {
       @media (max-width: 860px) { .bento, .kpi-strip { grid-template-columns: 1fr 1fr; } }
       @media (max-width: 560px) { .bento, .kpi-strip { grid-template-columns: 1fr; } }
 
-      /* ---------- Table — Premium Glass ---------- */
+      /* ---------- Table: Premium Glass ---------- */
       .table-card { padding: 30px 32px 22px; }
       .table-head {
         display: flex; align-items: flex-end; justify-content: space-between;
@@ -760,7 +790,7 @@ for (const m of models as any[]) {
       .table-title .sub .heat-legend { color: var(--accent); }
       .table-controls { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 
-      /* Preset view tabs — glass segmented control */
+      /* Preset view tabs: glass segmented control */
       .tabbar {
         display: inline-flex; gap: 2px; padding: 4px; border-radius: 14px;
         background: var(--glass);
@@ -854,9 +884,9 @@ for (const m of models as any[]) {
       tbody tr { transition: background 0.18s var(--ease); position: relative; }
       tbody tr:hover td { background-color: rgba(54, 216, 194, 0.028); }
       tbody tr:hover .stickycol { background: linear-gradient(90deg, #12141c, #0c0d12 80%); }
-      /* Left accent reveal on hover — drawn on the sticky name cell so it
+      /* Left accent reveal on hover, drawn on the sticky name cell so it
          survives horizontal scroll. */
-      tbody tr:hover .stickycol::after {
+      tbody tr:hover .stickycol::after { /* hover-only accent on the sticky name cell */
         content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2px;
         background: var(--accent); box-shadow: 0 0 12px var(--accent-glow);
       }
@@ -864,7 +894,7 @@ for (const m of models as any[]) {
       /* Off-screen row paint-skipping for 500+ rows */
       tbody tr { content-visibility: auto; contain-intrinsic-size: auto 44px; }
 
-      /* Baked heatmap ramp — single teal accent, goodness-graded. */
+      /* Baked heatmap ramp: single teal accent, goodness-graded. */
       td.h0 { background: rgba(54, 216, 191, 0.045); }
       td.h1 { background: rgba(54, 216, 191, 0.072); }
       td.h2 { background: rgba(54, 216, 191, 0.099); }
@@ -915,7 +945,7 @@ for (const m of models as any[]) {
         .hero-copy { margin-top: 52px; }
       }
 
-      /* ---------- Tooltip — Glass Morphism ---------- */
+      /* ---------- Tooltip: Glass Morphism ---------- */
       .tooltip {
         background: rgba(10, 11, 16, 0.78);
         border: 1px solid rgba(255,255,255,0.1);
@@ -947,7 +977,7 @@ for (const m of models as any[]) {
       .status.error strong { color: #f0908f; }
       .status .sub { color: var(--faint); font-size: 13px; }
 
-      /* ---------- Skeleton — Premium Shimmer ---------- */
+      /* ---------- Skeleton: Premium Shimmer ---------- */
       .sk-card, .kpi.sk, .sk-line {
         position: relative; overflow: hidden;
         background: var(--surface-2); border: 1px solid var(--glass-border); border-radius: var(--radius);

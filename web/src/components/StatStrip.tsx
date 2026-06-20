@@ -47,7 +47,7 @@ export default function StatStrip({ models }: { models: Model[] }) {
       <div className="strip-head">
         <h2>Leaders right now</h2>
         <p className="sub">
-          The current best model on each axis, recomputed live as you filter by release date.
+          The current best model on each axis, recomputed live as you filter by provider or release date.
         </p>
       </div>
       <div className="kpi-strip">
@@ -70,7 +70,7 @@ export default function StatStrip({ models }: { models: Model[] }) {
               {s.model && (
                 <span className="kpi-model">
                   <span className="ledot" style={{ ["--c" as any]: creatorColor(s.model.creator) }} />
-                  {s.model.name}
+                  <span className="kpi-model-name" title={s.model.name}>{s.model.name}</span>
                 </span>
               )}
             </article>
