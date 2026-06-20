@@ -60,6 +60,19 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
   const front = frontier(pts);
   const frontIds = new Set(front.map((p) => p.id));
 
+  // Sparse log-spaced ticks (1 and 3 per decade) so the price axis labels never
+  // overlap across a range that spans cents to hundreds of dollars per 1M tokens.
+  const xs = pts.map((p) => p.x);
+  const xMin = xs.length ? Math.min(...xs) : 0.01;
+  const xMax = xs.length ? Math.max(...xs) : 1;
+  const priceTicks: number[] = [];
+  for (let e = Math.floor(Math.log10(xMin)); e <= Math.ceil(Math.log10(xMax)); e++) {
+    for (const m of [1, 3]) {
+      const v = m * Math.pow(10, e);
+      if (v >= xMin * 0.96 && v <= xMax * 1.04) priceTicks.push(v);
+    }
+  }
+
   if (pts.length === 0) {
     return (
       <div className="card">
@@ -104,6 +117,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
             name="Price"
             scale="log"
             domain={["auto", "auto"]}
+            ticks={priceTicks}
             tick={{ fill: "#8a8c94", fontSize: 11 }}
             tickFormatter={(v) => fmtPrice(v)}
             tickLine={false}
@@ -111,7 +125,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
             label={{
               value: "Blended price  ·  $/1M tokens (log)",
               position: "bottom",
-              fill: "#5b5666",
+              fill: "#8a8c94",
               fontSize: 11,
               offset: 10,
             }}
@@ -130,7 +144,7 @@ export default function IntelligencePriceChart({ models }: { models: Model[] }) 
               value: "Intelligence Index",
               angle: -90,
               position: "insideLeft",
-              fill: "#5b5666",
+              fill: "#8a8c94",
               fontSize: 11,
               style: { textAnchor: "middle" },
             }}

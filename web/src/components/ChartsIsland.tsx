@@ -54,10 +54,35 @@ export default function ChartsIsland({ models }: { models: Model[] }) {
       return next;
     });
   }
+  const selectAll = () => setActive(new Set(creators));
+  const clearAll = () => setActive(new Set<string>());
 
   return (
     <>
       <div className="toolbar">
+        <div className="legend-head">
+          <span className="legend-count">
+            <b>{active.size}</b> of {creators.length} providers
+          </span>
+          <div className="legend-actions">
+            <button
+              type="button"
+              className="lg-btn"
+              onClick={selectAll}
+              disabled={active.size === creators.length}
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              className="lg-btn"
+              onClick={clearAll}
+              disabled={active.size === 0}
+            >
+              Clear
+            </button>
+          </div>
+        </div>
         <div className="legend">
           {creators.map((c) => (
             <button
